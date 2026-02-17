@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ATTENDO...</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px; background-color: #f4f7f6; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h1 { color: #2c3e50; margin-bottom: 20px; text-align: center; }
+        input, select, button { margin: 10px 0; padding: 12px; width: 100%; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #219150; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>ATTENDO...</h1>
+        <input type="text" id="roll" placeholder="Roll Number">
+        <input type="text" id="name" placeholder="Student Name">
+        <select id="class-select">
+            <option value="Class 11">Class 11</option>
+            <option value="Class 12">Class 12</option>
+        </select>
+        <button onclick="addStudent()">Mark Attendance</button>
+    </div>
+
+    <script>
+        async function addStudent() {
+            // This is your unique bridge to your private Google Sheet
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxxFEQZ3P9TlexNKePDXUxu8GCM6tGMEzm95jPf5wOltThzGatCf4OyvEMtc-7VVOIHiQ/exec";
+
+            const studentData = {
+                roll: document.getElementById('roll').value,
+                name: document.getElementById('name').value,
+                selectedClass: document.getElementById('class-select').value
+            };
+
+            if (!studentData.roll || !studentData.name) {
+                alert("Please fill in both Roll and Name!");
+                return;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(studentData)
+                });
+
+                if (response.ok) {
+                    alert("Attendance recorded in ATTENDO...!");
+                    document.getElementById('roll').value = '';
+                    document.getElementById('name').value = '';
+                }
+            } catch (error) {
+                alert("Error: Connection failed. Check your internet.");
+            }
+        }
+    </script>
+</body>
+</html>
