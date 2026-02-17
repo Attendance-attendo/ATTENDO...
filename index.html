@@ -6,77 +6,63 @@
     <title>ATTENDO...</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #2563eb; --success: #059669; --bg: #f8fafc; }
-        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        .chart-container { background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 600px; border: 1px solid #e2e8f0; }
-        h1, h2 { color: #1e293b; text-align: center; margin-bottom: 1.5rem; font-weight: 800; }
-        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #64748b; }
-        input, select { width: 100%; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; box-sizing: border-box; }
-        button { width: 100%; padding: 0.875rem; background-color: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container, .chart-container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        h1, h2 { color: #1e293b; text-align: center; margin-bottom: 1.5rem; }
+        input, select, button { width: 100%; padding: 0.75rem; margin-bottom: 1.25rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        button { background-color: var(--primary); color: white; font-weight: 600; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>ATTENDO...</h1>
-        <label>Student Name</label>
-        <input type="text" id="name" placeholder="Enter full name">
-        <label>Roll Number</label>
-        <input type="number" id="roll" placeholder="Enter roll number">
-        <label>Select Class</label>
+        <input type="text" id="name" placeholder="Student Name">
+        <input type="number" id="roll" placeholder="Roll Number">
         <select id="class-select">
-            <option value="Class 6">Class 6</option>
-            <option value="Class 7">Class 7</option>
-            <option value="Class 8">Class 8</option>
-            <option value="Class 9">Class 9</option>
-            <option value="Class 10">Class 10</option>
-            <option value="Class 11">Class 11</option>
-            <option value="Class 12">Class 12</option>
+            <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+            <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
         </select>
-        <button onclick="addStudent()">Submit Attendance</button>
+        <button id="btn" onclick="addStudent()">Submit Attendance</button>
     </div>
 
     <div class="chart-container">
-        <h2>Attendance (Last 30 Days)</h2>
+        <h2>Live Count</h2>
         <canvas id="attendanceChart"></canvas>
     </div>
 
     <script>
-        // Initialize Chart
+        // PASTE YOUR NEW DEPLOYMENT URL HERE!
+        const SCRIPT_URL = "https://attendance-attendo.github.io/ATTENDO.../";
+
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         const attendanceChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // Example Labels
-                datasets: [{
-                    label: 'Students Present',
-                    data: [12, 19, 15, 22], // Example Data
-                    borderColor: '#2563eb',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)'
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            type: 'bar',
+            data: { labels: ['Present Today'], datasets: [{ label: 'Students', data: [0], backgroundColor: '#2563eb' }] },
+            options: { scales: { y: { beginAtZero: true } } }
         });
 
         async function addStudent() {
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxxFEQZ3P9TlexNKePDXUxu8GCM6tGMEzm95jPf5wOltThzGatCf4OyvEMtc-7VVOIHiQ/exec";
             const name = document.getElementById('name').value;
             const roll = document.getElementById('roll').value;
             const selectedClass = document.getElementById('class-select').value;
+            if (!name || !roll) return alert("Fill all fields");
 
-            if (!name || !roll) { alert("Please fill in all fields"); return; }
-
+            document.getElementById('btn').innerText = "Saving...";
+            
             try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ name, roll, selectedClass })
-                });
-                alert("Success! Attendance recorded.");
-                // Note: Real-time chart update requires a "GET" script in Apps Script.
-            } catch (e) { alert("Error connecting to Google Sheets."); }
+                // 1. Save Student
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, roll, selectedClass }) });
+                
+                // 2. Get New Count
+                const res = await fetch(SCRIPT_URL);
+                const data = await res.json();
+                
+                attendanceChart.data.datasets[0].data[0] = data.count;
+                attendanceChart.update();
+                alert("Saved!");
+            } catch (e) { alert("Error!"); }
+            document.getElementById('btn').innerText = "Submit Attendance";
         }
     </script>
 </body>
