@@ -9,12 +9,9 @@
         body { font-family: sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #475569; }
         .hidden { display: none; }
-        .link { color: #94a3b8; text-decoration: underline; cursor: pointer; font-size: 0.9rem; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
-        .day-box { background: #0f172a; border: 1px solid #334155; padding: 5px; border-radius: 5px; min-height: 55px; font-size: 0.7rem; }
-        .sunday { background: #450a0a; color: #f87171; border-color: var(--danger); }
         .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.8rem; text-align: left; }
     </style>
 </head>
@@ -26,49 +23,36 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p class="link" onclick="toggleAuth(true)">New Account? Sign Up</p>
+            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">Sign Up</p>
         </div>
 
         <div id="signup-fields" class="hidden">
             <input type="text" id="reg-user" placeholder="Username">
             <input type="email" id="reg-email" placeholder="Email ID">
             <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-secret" placeholder="Secret Recovery Code">
+            <input type="text" id="reg-secret" placeholder="Recovery Code">
             <div id="otp-section" class="hidden">
-                <input type="text" id="reg-otp" placeholder="Enter 6-Digit OTP">
+                <input type="text" id="reg-otp" placeholder="Enter OTP">
                 <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Sign Up</button>
             </div>
             <button id="otp-btn" onclick="requestOTP()">Send OTP</button>
-            <p class="link" onclick="toggleAuth(false)">Back to Login</p>
+            <p onclick="toggleAuth(false)" style="cursor:pointer; text-decoration:underline;">Back to Login</p>
         </div>
     </div>
 
     <div id="dashboard" class="hidden" style="width:100%; max-width:500px;">
         <div class="glass-card">
-            <h2 id="welcome">Dashboard</h2>
-            <input type="text" id="name" placeholder="Student Name">
+            <h2>Mark Attendance</h2>
+            <input type="text" id="name" placeholder="Name">
             <input type="number" id="roll" placeholder="Roll No">
-            <div style="display:flex; gap:10px;">
-                <select id="class-select">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="section-select"><option>Sec A</option><option>Sec B</option></select>
-            </div>
-            <select id="period-select">
-                <option value="Morning Call">☀️ Morning Call</option>
-                <option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option>
-                <option>Period 5</option><option>Period 6</option><option>Period 7</option><option>Period 8</option>
+            <select id="class-select">
+                <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
             </select>
-            <select id="status-select"><option value="Present">✅ Present</option><option value="Leave">📄 Leave</option></select>
-            <button onclick="addStudent()">Submit Attendance</button>
+            <select id="period-select"><option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option></select>
+            <select id="status-select"><option value="Present">Present</option><option value="Leave">Leave</option></select>
+            <button onclick="addStudent()">Submit</button>
         </div>
-
-        <div class="glass-card">
-            <h3>📅 Calendar</h3>
-            <div id="calendar-view" class="calendar-grid"></div>
-        </div>
-
         <div class="glass-card">
             <h3>Recent Records</h3>
             <div id="student-list">Loading...</div>
@@ -77,9 +61,8 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZaNASplfUyTqqhkfdwYwILyNWMyay4s-6MtO26e2fUQlAxwpiTv9BTIgJIw_2xEdeIA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQQY1FKzKCv515dPmiAOzZFxzpLzFstjJ5m4sVn36_3s03sN9wyLoiLp8aNttJI43F1A/exec";
         let generatedOTP = "";
-        let canResend = true;
 
         function toggleAuth(isSignup) {
             document.getElementById('login-fields').classList.toggle('hidden', isSignup);
@@ -87,87 +70,53 @@
         }
 
         async function requestOTP() {
-            if (!canResend) return;
             const email = document.getElementById('reg-email').value;
-            if(!email.includes("@")) return alert("Enter valid email");
             const btn = document.getElementById('otp-btn');
             btn.disabled = true; btn.innerText = "Sending...";
-
             const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "sendOTP", email: email }) });
             const otp = await res.text();
-            
-            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; btn.innerText = "Send OTP"; }
-            else { 
-                generatedOTP = otp.trim(); alert("OTP Sent!"); 
-                document.getElementById('otp-section').classList.remove('hidden');
-                startTimer();
-            }
-        }
-
-        function startTimer() {
-            canResend = false;
-            let timeLeft = 60;
-            const btn = document.getElementById('otp-btn');
-            const interval = setInterval(() => {
-                timeLeft--; btn.innerText = `Wait ${timeLeft}s`;
-                if (timeLeft <= 0) { clearInterval(interval); canResend = true; btn.disabled = false; btn.innerText = "Resend OTP"; }
-            }, 1000);
+            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; }
+            else { generatedOTP = otp.trim(); alert("OTP Sent!"); document.getElementById('otp-section').classList.remove('hidden'); }
         }
 
         async function verifyAndSignup() {
             if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Wrong OTP");
             const data = { action: "signup", user: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pass: document.getElementById('reg-pass').value, secret: document.getElementById('reg-secret').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            alert("Success! Login now."); location.reload();
+            alert("Success! Account created."); location.reload();
         }
 
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
-            if ((await res.text()).trim() === "valid") {
+            const text = await res.text();
+            if (text.trim() === "valid") {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 refreshAll();
-            } else alert("Fail");
+            } else alert("Login Fail: " + text);
         }
 
         async function addStudent() {
-            const data = { roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, section: document.getElementById('section-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
+            const data = { roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
             alert("Marked!"); refreshAll();
         }
 
         async function refreshAll() {
-            renderCalendar();
             const res = await fetch(SCRIPT_URL);
             const list = await res.json();
             document.getElementById('student-list').innerHTML = list.reverse().slice(0,10).map(s => `
                 <div class="student-item">
-                    <span><b>${s.name}</b> (${s.class} - ${s.period})</span>
-                    <button style="width:auto;background:var(--danger);font-size:0.7rem;padding:5px;" onclick="deleteRecord(${s.row})">Del</button>
+                    <span><b>${s.name}</b> (${s.class})</span>
+                    <button style="width:auto;background:var(--danger);padding:5px;" onclick="deleteRecord(${s.row})">Del</button>
                 </div>`).join('');
         }
 
         async function deleteRecord(row) {
-            if(!confirm("Delete?")) return;
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: row }) });
             refreshAll();
-        }
-
-        async function renderCalendar() {
-            const grid = document.getElementById('calendar-view');
-            const res = await fetch(`${SCRIPT_URL}?get=stats&t=${Date.now()}`);
-            const stats = await res.json();
-            grid.innerHTML = '';
-            const now = new Date();
-            const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            for (let d = 1; d <= days; d++) {
-                const date = new Date(now.getFullYear(), now.getMonth(), d);
-                const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const s = stats[key] || { Present:0, Leave:0 };
-                grid.innerHTML += `<div class="day-box ${date.getDay()===0?'sunday':''}"><div>${d}</div><div style="color:var(--success)">P:${s.Present}</div><div style="color:var(--danger)">L:${s.Leave}</div></div>`;
-            }
         }
     </script>
 </body>
