@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Made by yuvan</title>
+    <title>ATTENDO... | Master Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --danger: #ef4444; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .glass-card { background: var(--card); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 450px; text-align: center; }
-        h1 { font-size: 2.2rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
-        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 0.75rem; border: 1px solid #334155; background: #0f172a; color: white; font-size: 0.95rem; }
-        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { filter: brightness(1.2); }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .glass-card { background: var(--card); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
+        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 0.75rem; border: 1px solid #334155; background: #0f172a; color: white; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
         .hidden { display: none; }
-        .list-section { margin-top: 30px; text-align: left; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .del-btn { width: auto; background: var(--danger); padding: 5px 12px; font-size: 0.8rem; margin: 0; }
-        .link { color: #94a3b8; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin: 10px 5px; display: inline-block; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+        .day-box { background: #0f172a; border: 1px solid #334155; padding: 5px; border-radius: 5px; min-height: 50px; font-size: 0.65rem; }
+        .sunday { color: var(--danger); border-color: var(--danger); font-weight: bold; }
+        .stat-p { color: #4ade80; } .stat-l { color: #facc15; } .stat-v { color: #f87171; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; margin-bottom: 5px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -28,122 +27,97 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p class="link" onclick="toggleAuth(true)">Sign Up</p> | <p class="link" onclick="handleForgot()">Forgot Password?</p>
-        </div>
-        <div id="signup-fields" class="hidden">
-            <input type="text" id="reg-user" placeholder="Username">
-            <input type="email" id="reg-email" placeholder="Email ID">
-            <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-secret" placeholder="Secret Code">
-            <button onclick="handleSignup()">Create Account</button>
-            <p class="link" onclick="toggleAuth(false)">Back to Login</p>
         </div>
     </div>
 
-    <div id="dashboard" class="glass-card hidden">
-        <h1 id="welcome">Dashboard</h1>
-        <input type="text" id="name" placeholder="Student Name">
-        <input type="number" id="roll" placeholder="Roll Number">
-        <select id="class-select">
-            <option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-        </select>
-        <select id="status-select" style="background: #1e293b; border-color: var(--primary);">
-            <option value="Present">✅ Present</option>
-            <option value="Late">⏰ Late</option>
-            <option value="Leave">📄 Leave</option>
-        </select>
-        <button id="submitBtn" onclick="addStudent()">Add Student</button>
-        
-        <div style="margin: 20px 0;"><canvas id="attendanceChart"></canvas></div>
-
-        <div class="list-section">
-            <h3>Attendance List</h3>
-            <div id="student-list">Loading list...</div>
+    <div id="dashboard" class="hidden">
+        <div class="glass-card">
+            <h1 id="welcome">Dashboard</h1>
+            <input type="text" id="name" placeholder="Student Name">
+            <input type="number" id="roll" placeholder="Roll No">
+            <div style="display:flex; gap:10px;">
+                <select id="class-select"><option>Class 11</option><option>Class 12</option></select>
+                <select id="section-select"><option>Sec A</option><option>Sec B</option></select>
+            </div>
+            <select id="period-select">
+                <option value="Morning">☀️ Morning Call</option>
+                <option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option>
+                <option>Period 5</option><option>Period 6</option><option>Period 7</option><option>Period 8</option>
+            </select>
+            <select id="status-select">
+                <option value="Present">✅ Present</option>
+                <option value="Late">⏰ Late</option>
+                <option value="Leave">📄 Leave</option>
+            </select>
+            <button onclick="addStudent()">Submit Attendance</button>
         </div>
-        
-        <p class="link" onclick="location.reload()" style="color:var(--danger)">Logout</p>
+
+        <div class="glass-card">
+            <h3>Monthly Calendar</h3>
+            <div id="calendar-view" class="calendar-grid"></div>
+        </div>
+
+        <div class="glass-card">
+            <h3>Recent Records</h3>
+            <div id="student-list">Loading...</div>
+        </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydq4o261PJGqn_oyF50-T2Fv7CHiZoj8T7I3UxUAFuWKODAev7td5FYF3VYF9lN8QAjw/exec";
-
-        function toggleAuth(isSignup) {
-            document.getElementById('login-fields').classList.toggle('hidden', isSignup);
-            document.getElementById('signup-fields').classList.toggle('hidden', !isSignup);
-        }
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGBORRVkQiUhL30A3I9oJbj3Aq8GVDnwIh1hy49esgUPp-n72FadJQdspR1MyuIX_4Kg/exec";
 
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
-            const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
-            const status = await res.text();
-            if (status.trim() === "valid") {
+            const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
+            if ((await res.text()).trim() === "valid") {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
-                document.getElementById('welcome').innerText = "Hi, " + user;
-                initChart();
-                refreshList();
-            } else { alert("Invalid Credentials"); }
-        }
-
-        async function handleForgot() {
-            const user = prompt("Username:");
-            const secret = prompt("Secret Code:");
-            if(!user || !secret) return;
-            const res = await fetch(`${SCRIPT_URL}?action=recover&user=${encodeURIComponent(user)}&secret=${encodeURIComponent(secret)}`);
-            alert(await res.text());
-        }
-
-        async function handleSignup() {
-            const user = document.getElementById('reg-user').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-            const secret = document.getElementById('reg-secret').value;
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "signup", user, email, pass, secret }) });
-            alert("Account created! Now login.");
-            toggleAuth(false);
-        }
-
-        let attendanceChart;
-        function initChart() {
-            const ctx = document.getElementById('attendanceChart').getContext('2d');
-            attendanceChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'], borderColor: '#1e293b' }] }, options: { plugins: { legend: { display: false } } } });
-        }
-
-        async function refreshList() {
-            const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
-            const students = await res.json();
-            let html = '';
-            students.forEach(s => {
-                html += `<div class="student-item">
-                            <span><b>${s.name}</b> (${s.status})</span>
-                            <button class="del-btn" onclick="deleteStudent(${s.row})">Delete</button>
-                         </div>`;
-            });
-            document.getElementById('student-list').innerHTML = html || 'No students yet.';
-            attendanceChart.data.datasets[0].data[0] = students.length;
-            attendanceChart.update();
+                refreshAll();
+            } else alert("Fail");
         }
 
         async function addStudent() {
-            const name = document.getElementById('name').value;
-            const roll = document.getElementById('roll').value;
-            const selectedClass = document.getElementById('class-select').value;
-            const status = document.getElementById('status-select').value;
-            if(!name || !roll) return alert("Fill all fields");
-
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ name, roll, selectedClass, status }) });
+            const data = { 
+                name: document.getElementById('name').value, 
+                roll: document.getElementById('roll').value,
+                selectedClass: document.getElementById('class-select').value,
+                section: document.getElementById('section-select').value,
+                period: document.getElementById('period-select').value,
+                status: document.getElementById('status-select').value 
+            };
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
             alert("Marked!");
-            setTimeout(refreshList, 1500);
-            document.getElementById('name').value = '';
-            document.getElementById('roll').value = '';
+            refreshAll();
         }
 
-        async function deleteStudent(rowNum) {
-            if(!confirm("Delete this entry?")) return;
-            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: rowNum }) });
-            alert("Deleted!");
-            setTimeout(refreshList, 1500);
+        async function refreshAll() {
+            // Load List
+            const resList = await fetch(SCRIPT_URL);
+            const students = await resList.json();
+            document.getElementById('student-list').innerHTML = students.map(s => `
+                <div class="student-item">
+                    <span><b>${s.name}</b> (${s.period})</span>
+                    <span class="${s.status === 'Present' ? 'stat-p' : 'stat-v'}">${s.status}</span>
+                </div>`).join('') || 'Empty';
+
+            // Load Calendar 
+            const resStats = await fetch(`${SCRIPT_URL}?get=stats`);
+            const stats = await resStats.json();
+            const grid = document.getElementById('calendar-view');
+            grid.innerHTML = '';
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(now.getFullYear(), now.getMonth(), d);
+                const isSun = date.getDay() === 0;
+                const key = date.toISOString().split('T')[0];
+                const s = stats[key] || { Present:0, Late:0, Leave:0 };
+                grid.innerHTML += `<div class="day-box ${isSun ? 'sunday' : ''}">
+                    <div>${d}</div>
+                    <div class="stat-p">P:${s.Present}</div><div class="stat-v">L:${s.Leave}</div>
+                </div>`;
+            }
         }
     </script>
 </body>
