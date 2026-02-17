@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATTENDO... | Portal</title>
+    <title>Made by yuvan</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
-        .glass-card { background: var(--card); padding: 2.5rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; box-sizing: border-box; }
-        h1 { font-size: 2.2rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; font-weight: 800; }
-        input, select, button { width: 100%; padding: 0.85rem; margin: 0.6rem 0; border-radius: 0.75rem; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 1rem; }
-        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 1rem; }
-        button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --danger: #ef4444; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .glass-card { background: var(--card); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 450px; text-align: center; }
+        h1 { font-size: 2.2rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 0.75rem; border: 1px solid #334155; background: #0f172a; color: white; font-size: 0.95rem; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
         .hidden { display: none; }
-        .link { color: #94a3b8; font-size: 0.85rem; cursor: pointer; margin-top: 12px; text-decoration: underline; display: inline-block; }
-        .links-container { margin-top: 15px; border-top: 1px solid #334155; padding-top: 10px; }
+        .list-section { margin-top: 30px; text-align: left; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .del-btn { width: auto; background: var(--danger); padding: 5px 12px; font-size: 0.8rem; margin: 0; }
+        .link { color: #94a3b8; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin: 10px 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -26,17 +28,14 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <div class="links-container">
-                <p class="link" onclick="toggleAuth(true)">Create Account</p> | 
-                <p class="link" onclick="handleForgot()">Forgot Password?</p>
-            </div>
+            <p class="link" onclick="toggleAuth(true)">Sign Up</p> | <p class="link" onclick="handleForgot()">Forgot Password?</p>
         </div>
         <div id="signup-fields" class="hidden">
             <input type="text" id="reg-user" placeholder="Username">
             <input type="email" id="reg-email" placeholder="Email ID">
             <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-secret" placeholder="Secret Code (for recovery)">
-            <button onclick="handleSignup()">Sign Up</button>
+            <input type="text" id="reg-secret" placeholder="Secret Code">
+            <button onclick="handleSignup()">Create Account</button>
             <p class="link" onclick="toggleAuth(false)">Back to Login</p>
         </div>
     </div>
@@ -46,16 +45,27 @@
         <input type="text" id="name" placeholder="Student Name">
         <input type="number" id="roll" placeholder="Roll Number">
         <select id="class-select">
-            <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-            <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+            <option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
         </select>
-        <button id="submitBtn" onclick="addStudent()">Submit Attendance</button>
-        <div style="margin-top: 25px;"><canvas id="attendanceChart"></canvas></div>
-        <p class="link" onclick="location.reload()" style="color:#ef4444">Logout</p>
+        <select id="status-select" style="background: #1e293b; border-color: var(--primary);">
+            <option value="Present">✅ Present</option>
+            <option value="Late">⏰ Late</option>
+            <option value="Leave">📄 Leave</option>
+        </select>
+        <button id="submitBtn" onclick="addStudent()">Add Student</button>
+        
+        <div style="margin: 20px 0;"><canvas id="attendanceChart"></canvas></div>
+
+        <div class="list-section">
+            <h3>Attendance List</h3>
+            <div id="student-list">Loading list...</div>
+        </div>
+        
+        <p class="link" onclick="location.reload()" style="color:var(--danger)">Logout</p>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhw2YwpTD9o2J1ns3DkKbvIHrHBVEQ_5fjg1miiK-IAX3DqZYz0AdOyCUVVTLxI02XbQ/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydq4o261PJGqn_oyF50-T2Fv7CHiZoj8T7I3UxUAFuWKODAev7td5FYF3VYF9lN8QAjw/exec";
 
         function toggleAuth(isSignup) {
             document.getElementById('login-fields').classList.toggle('hidden', isSignup);
@@ -65,29 +75,23 @@
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
-            if(!user || !pass) return alert("Please enter credentials");
-            
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
-                const status = await res.text();
-                if (status.trim() === "valid") {
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    document.getElementById('welcome').innerText = "Hi, " + user;
-                    initChart();
-                } else { alert("Invalid Username or Password"); }
-            } catch(e) { alert("Server connection failed."); }
+            const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
+            const status = await res.text();
+            if (status.trim() === "valid") {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('welcome').innerText = "Hi, " + user;
+                initChart();
+                refreshList();
+            } else { alert("Invalid Credentials"); }
         }
 
         async function handleForgot() {
-            const user = prompt("Enter your Username:");
-            const secret = prompt("Enter your Secret Code:");
+            const user = prompt("Username:");
+            const secret = prompt("Secret Code:");
             if(!user || !secret) return;
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=recover&user=${encodeURIComponent(user)}&secret=${encodeURIComponent(secret)}&t=${Date.now()}`);
-                const msg = await res.text();
-                alert(msg);
-            } catch(e) { alert("Recovery failed."); }
+            const res = await fetch(`${SCRIPT_URL}?action=recover&user=${encodeURIComponent(user)}&secret=${encodeURIComponent(secret)}`);
+            alert(await res.text());
         }
 
         async function handleSignup() {
@@ -95,53 +99,51 @@
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-pass').value;
             const secret = document.getElementById('reg-secret').value;
-            if(!user || !email || !pass || !secret) return alert("Please fill all fields");
-            
-            try {
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "signup", user, email, pass, secret }) });
-                alert("Account created! You can now login.");
-                toggleAuth(false);
-            } catch(e) { alert("Signup error."); }
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "signup", user, email, pass, secret }) });
+            alert("Account created! Now login.");
+            toggleAuth(false);
         }
 
         let attendanceChart;
         function initChart() {
             const ctx = document.getElementById('attendanceChart').getContext('2d');
-            attendanceChart = new Chart(ctx, { 
-                type: 'doughnut', 
-                data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'], borderColor: '#1e293b' }] }, 
-                options: { plugins: { legend: { display: false } }, cutout: '70%' } 
-            });
-            refreshChart();
+            attendanceChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'], borderColor: '#1e293b' }] }, options: { plugins: { legend: { display: false } } } });
         }
 
-        async function refreshChart() {
-            try {
-                const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
-                const data = await res.json();
-                attendanceChart.data.datasets[0].data[0] = data.count;
-                attendanceChart.update();
-            } catch(e) {}
+        async function refreshList() {
+            const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
+            const students = await res.json();
+            let html = '';
+            students.forEach(s => {
+                html += `<div class="student-item">
+                            <span><b>${s.name}</b> (${s.status})</span>
+                            <button class="del-btn" onclick="deleteStudent(${s.row})">Delete</button>
+                         </div>`;
+            });
+            document.getElementById('student-list').innerHTML = html || 'No students yet.';
+            attendanceChart.data.datasets[0].data[0] = students.length;
+            attendanceChart.update();
         }
 
         async function addStudent() {
             const name = document.getElementById('name').value;
             const roll = document.getElementById('roll').value;
             const selectedClass = document.getElementById('class-select').value;
-            const btn = document.getElementById('submitBtn');
-            if(!name || !roll) return alert("Fill student details");
-            
-            btn.disabled = true;
-            btn.innerText = "Syncing...";
-            try {
-                await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ name, roll, selectedClass }) });
-                alert("Attendance recorded!");
-                setTimeout(refreshChart, 2000);
-                document.getElementById('name').value = '';
-                document.getElementById('roll').value = '';
-            } catch (e) { alert("Sync Error!"); }
-            btn.disabled = false;
-            btn.innerText = "Submit Attendance";
+            const status = document.getElementById('status-select').value;
+            if(!name || !roll) return alert("Fill all fields");
+
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ name, roll, selectedClass, status }) });
+            alert("Marked!");
+            setTimeout(refreshList, 1500);
+            document.getElementById('name').value = '';
+            document.getElementById('roll').value = '';
+        }
+
+        async function deleteStudent(rowNum) {
+            if(!confirm("Delete this entry?")) return;
+            await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: rowNum }) });
+            alert("Deleted!");
+            setTimeout(refreshList, 1500);
         }
     </script>
 </body>
