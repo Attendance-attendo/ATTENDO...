@@ -6,16 +6,18 @@
     <title>ATTENDO... | Manager</title>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --danger: #ef4444; --success: #4ade80; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
+        body { font-family: sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; text-align: center; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #475569; cursor: not-allowed; }
         .hidden { display: none; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
         .day-box { background: #0f172a; border: 1px solid #334155; padding: 5px; border-radius: 5px; min-height: 55px; font-size: 0.7rem; }
         .sunday { background: #450a0a; color: #f87171; border-color: var(--danger); }
         .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.8rem; text-align: left; }
         .del-btn { width: auto; background: var(--danger); padding: 5px 10px; font-size: 0.7rem; margin: 0; }
+        .link { color: #94a3b8; text-decoration: underline; cursor: pointer; font-size: 0.9rem; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -26,23 +28,22 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline; font-size:0.9rem; margin-top:10px;">New Account? Sign Up</p>
+            <p class="link" onclick="toggleAuth(true)">New Account? Sign Up</p>
         </div>
 
         <div id="signup-fields" class="hidden">
             <input type="text" id="reg-user" placeholder="Username">
             <input type="email" id="reg-email" placeholder="Email ID">
             <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-secret" placeholder="Secret Recovery Code">
+            <input type="text" id="reg-secret" placeholder="Secret Code">
             
             <div id="otp-section" class="hidden">
-                <input type="text" id="reg-otp" placeholder="Enter 6-Digit OTP">
-                <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Create Account</button>
+                <input type="text" id="reg-otp" placeholder="Enter OTP Code">
+                <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Sign Up</button>
             </div>
 
             <button id="otp-btn" onclick="requestOTP()">Send OTP</button>
-            <p id="timer-text" class="hidden" style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;"></p>
-            <p onclick="toggleAuth(false)" style="cursor:pointer; text-decoration:underline; font-size:0.9rem; margin-top:10px;">Back to Login</p>
+            <p class="link" onclick="toggleAuth(false)">Back to Login</p>
         </div>
     </div>
 
@@ -60,8 +61,9 @@
             </div>
             <select id="period-select">
                 <option value="Morning Call">☀️ Morning Call</option>
-                <option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option>
-                <option>Period 5</option><option>Period 6</option><option>Period 7</option><option>Period 8</option>
+                <option>Period 1</option><option>Period 2</option><option>Period 3</option>
+                <option>Period 4</option><option>Period 5</option><option>Period 6</option>
+                <option>Period 7</option><option>Period 8</option>
             </select>
             <select id="status-select"><option value="Present">✅ Present</option><option value="Leave">📄 Leave</option></select>
             <button onclick="addStudent()">Submit Attendance</button>
@@ -73,14 +75,14 @@
         </div>
 
         <div class="glass-card">
-            <h3>Recent Records</h3>
-            <div id="student-list">Loading records...</div>
+            <h3>Records</h3>
+            <div id="student-list">Loading...</div>
         </div>
         <button onclick="location.reload()" style="background:var(--danger)">Logout</button>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyUUi4cVwcyanGb-wmRgBRDoCI14Q66y220-I1fW7z8ipt7tocSvyy1EbYnTVUAgPxnQ/exec";
+        const SCRIPT_URL = "PASTE_YOUR_NEW_URL_HERE";
         let generatedOTP = "";
         let canResend = true;
 
@@ -92,7 +94,7 @@
         async function requestOTP() {
             if (!canResend) return;
             const email = document.getElementById('reg-email').value;
-            if(!email.includes("@")) return alert("Enter a valid email");
+            if(!email.includes("@")) return alert("Enter valid email");
 
             const btn = document.getElementById('otp-btn');
             btn.disabled = true; btn.innerText = "Sending...";
@@ -103,7 +105,7 @@
             if(otp.includes("Error")) { alert(otp); btn.disabled = false; btn.innerText = "Send OTP"; }
             else { 
                 generatedOTP = otp.trim(); 
-                alert("OTP sent!"); 
+                alert("OTP Sent!"); 
                 document.getElementById('otp-section').classList.remove('hidden');
                 startTimer();
             }
@@ -113,18 +115,15 @@
             canResend = false;
             let timeLeft = 60;
             const btn = document.getElementById('otp-btn');
-            const timerText = document.getElementById('timer-text');
-            timerText.classList.remove('hidden');
             const interval = setInterval(() => {
                 timeLeft--;
                 btn.innerText = `Wait ${timeLeft}s`;
-                timerText.innerText = `Resend available in ${timeLeft}s`;
-                if (timeLeft <= 0) { clearInterval(interval); canResend = true; btn.disabled = false; btn.innerText = "Resend OTP"; timerText.classList.add('hidden'); }
+                if (timeLeft <= 0) { clearInterval(interval); canResend = true; btn.disabled = false; btn.innerText = "Resend OTP"; }
             }, 1000);
         }
 
         async function verifyAndSignup() {
-            if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Invalid OTP");
+            if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Wrong OTP");
             const data = { action: "signup", user: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pass: document.getElementById('reg-pass').value, secret: document.getElementById('reg-secret').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
             alert("Account Verified!"); location.reload();
@@ -162,7 +161,7 @@
                 <div class="student-item">
                     <span><b>${s.name}</b> (${s.class} - ${s.period})</span>
                     <button class="del-btn" onclick="deleteRecord(${s.row})">Del</button>
-                </div>`).join('');
+                </div>`).join('') || 'No records.';
         }
 
         async function renderCalendar() {
