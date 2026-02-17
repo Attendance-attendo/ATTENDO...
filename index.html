@@ -3,66 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATTENDO...</title>
+    <title>ATTENDO... | Secure Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container, .chart-container { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
-        h1, h2 { color: #1e293b; text-align: center; margin-bottom: 1.5rem; }
-        input, select, button { width: 100%; padding: 0.75rem; margin-bottom: 1.25rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        button { background-color: var(--primary); color: white; font-weight: 600; cursor: pointer; border: none; }
+        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
+        .glass-card { background: var(--card); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 380px; text-align: center; box-sizing: border-box; }
+        h1 { font-size: 2rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+        input, select, button { width: 100%; padding: 0.8rem; margin: 0.6rem 0; border-radius: 0.75rem; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { filter: brightness(1.2); }
+        .hidden { display: none; }
+        .link { color: #94a3b8; font-size: 0.8rem; cursor: pointer; margin-top: 10px; text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container">
+
+    <div id="auth-screen" class="glass-card">
         <h1>ATTENDO...</h1>
+        <div id="login-fields">
+            <input type="text" id="login-user" placeholder="Username">
+            <input type="password" id="login-pass" placeholder="Password">
+            <button onclick="handleLogin()">Login</button>
+            <p class="link" onclick="toggleAuth(true)">New here? Sign Up</p>
+        </div>
+        <div id="signup-fields" class="hidden">
+            <input type="text" id="reg-user" placeholder="Choose Username">
+            <input type="password" id="reg-pass" placeholder="Choose Password">
+            <input type="text" id="reg-secret" placeholder="Secret Code (for recovery)">
+            <button onclick="handleSignup()">Create Account</button>
+            <p class="link" onclick="toggleAuth(false)">Back to Login</p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="glass-card hidden">
+        <h1 id="welcome">Dashboard</h1>
         <input type="text" id="name" placeholder="Student Name">
         <input type="number" id="roll" placeholder="Roll Number">
         <select id="class-select">
             <option>Class 6</option><option>Class 7</option><option>Class 8</option>
             <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
         </select>
-        <button id="btn" onclick="addStudent()">Submit Attendance</button>
-    </div>
-
-    <div class="chart-container">
-        <h2>Live Count</h2>
-        <canvas id="attendanceChart"></canvas>
+        <button id="submitBtn" onclick="addStudent()">Submit Attendance</button>
+        <div style="margin-top: 20px;"><canvas id="attendanceChart"></canvas></div>
+        <p class="link" onclick="location.reload()">Logout</p>
     </div>
 
     <script>
-        // PASTE YOUR NEW DEPLOYMENT URL HERE!
-        const SCRIPT_URL = "https://attendance-attendo.github.io/ATTENDO.../";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAchRc4ubeGUM-8WAnXFA8syOcI_FbfEQCxrmLjv_w88ydT79kE0cLGPXPzJR7GoAdfQ/exec";
 
-        const ctx = document.getElementById('attendanceChart').getContext('2d');
-        const attendanceChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: ['Present Today'], datasets: [{ label: 'Students', data: [0], backgroundColor: '#2563eb' }] },
-            options: { scales: { y: { beginAtZero: true } } }
-        });
+        function toggleAuth(isSignup) {
+            document.getElementById('login-fields').classList.toggle('hidden', isSignup);
+            document.getElementById('signup-fields').classList.toggle('hidden', !isSignup);
+        }
+
+        async function handleSignup() {
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+            const secret = document.getElementById('reg-secret').value;
+            if(!user || !pass || !secret) return alert("Fill all fields");
+
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "signup", user, pass, secret }) });
+            alert("Signed up! You can now login.");
+            toggleAuth(false);
+        }
+
+        async function handleLogin() {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
+            const status = await res.text();
+
+            if (status === "valid") {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('welcome').innerText = "Hi, " + user;
+                initChart();
+            } else {
+                alert("Login Failed!");
+            }
+        }
+
+        let attendanceChart;
+        function initChart() {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            attendanceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'] }] },
+                options: { plugins: { legend: { display: false } } }
+            });
+            refreshChart();
+        }
+
+        async function refreshChart() {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            attendanceChart.data.datasets[0].data[0] = data.count;
+            attendanceChart.update();
+        }
 
         async function addStudent() {
             const name = document.getElementById('name').value;
             const roll = document.getElementById('roll').value;
             const selectedClass = document.getElementById('class-select').value;
-            if (!name || !roll) return alert("Fill all fields");
+            const btn = document.getElementById('submitBtn');
+            if(!name || !roll) return alert("Missing data");
 
-            document.getElementById('btn').innerText = "Saving...";
-            
-            try {
-                // 1. Save Student
-                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, roll, selectedClass }) });
-                
-                // 2. Get New Count
-                const res = await fetch(SCRIPT_URL);
-                const data = await res.json();
-                
-                attendanceChart.data.datasets[0].data[0] = data.count;
-                attendanceChart.update();
-                alert("Saved!");
-            } catch (e) { alert("Error!"); }
-            document.getElementById('btn').innerText = "Submit Attendance";
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, roll, selectedClass }) });
+            alert("Attendance Saved!");
+            refreshChart();
+            btn.disabled = false;
+            btn.innerText = "Submit Attendance";
         }
     </script>
 </body>
