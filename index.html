@@ -24,14 +24,14 @@
         <div id="login-fields">
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
-            <button onclick="handleLogin()">Login</button>
+            <button id="loginBtn" onclick="handleLogin()">Login</button>
             <p class="link" onclick="toggleAuth(true)">New here? Sign Up</p>
         </div>
         <div id="signup-fields" class="hidden">
             <input type="text" id="reg-user" placeholder="Choose Username">
             <input type="password" id="reg-pass" placeholder="Choose Password">
-            <input type="text" id="reg-secret" placeholder="Secret Code (for recovery)">
-            <button onclick="handleSignup()">Create Account</button>
+            <input type="text" id="reg-secret" placeholder="Secret Code">
+            <button id="signupBtn" onclick="handleSignup()">Create Account</button>
             <p class="link" onclick="toggleAuth(false)">Back to Login</p>
         </div>
     </div>
@@ -50,7 +50,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAchRc4ubeGUM-8WAnXFA8syOcI_FbfEQCxrmLjv_w88ydT79kE0cLGPXPzJR7GoAdfQ/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzk7eSrPf3E8GBuf9zbthetNlpzIU5YN5KgJj7Z1UKwAADCLi41V3hFDoILwNDWloVzEg/exec";
 
         function toggleAuth(isSignup) {
             document.getElementById('login-fields').classList.toggle('hidden', isSignup);
@@ -61,27 +61,45 @@
             const user = document.getElementById('reg-user').value;
             const pass = document.getElementById('reg-pass').value;
             const secret = document.getElementById('reg-secret').value;
-            if(!user || !pass || !secret) return alert("Fill all fields");
+            if(!user || !pass || !secret) return alert("Please fill all fields");
 
-            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "signup", user, pass, secret }) });
-            alert("Signed up! You can now login.");
-            toggleAuth(false);
+            const btn = document.getElementById('signupBtn');
+            btn.innerText = "Creating...";
+            
+            try {
+                await fetch(SCRIPT_URL, { 
+                    method: "POST", 
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "signup", user, pass, secret }) 
+                });
+                alert("Account created! Wait 5 seconds for the database to sync, then Login.");
+                toggleAuth(false);
+            } catch(e) { alert("Error saving account."); }
+            btn.innerText = "Create Account";
         }
 
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
-            const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
-            const status = await res.text();
+            const btn = document.getElementById('loginBtn');
+            
+            if(!user || !pass) return alert("Enter credentials");
+            btn.innerText = "Checking...";
 
-            if (status === "valid") {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                document.getElementById('welcome').innerText = "Hi, " + user;
-                initChart();
-            } else {
-                alert("Login Failed!");
-            }
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}&t=${Date.now()}`);
+                const status = await res.text();
+                
+                if (status.trim() === "valid") {
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    document.getElementById('welcome').innerText = "Hi, " + user;
+                    initChart();
+                } else {
+                    alert("Incorrect Username or Password. If you just signed up, wait a moment.");
+                }
+            } catch(e) { alert("Server error. Check your Apps Script deployment."); }
+            btn.innerText = "Login";
         }
 
         let attendanceChart;
@@ -89,17 +107,19 @@
             const ctx = document.getElementById('attendanceChart').getContext('2d');
             attendanceChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'] }] },
+                data: { labels: ['Present'], datasets: [{ data: [0], backgroundColor: ['#818cf8'], borderColor: '#1e293b' }] },
                 options: { plugins: { legend: { display: false } } }
             });
             refreshChart();
         }
 
         async function refreshChart() {
-            const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
-            attendanceChart.data.datasets[0].data[0] = data.count;
-            attendanceChart.update();
+            try {
+                const res = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
+                const data = await res.json();
+                attendanceChart.data.datasets[0].data[0] = data.count;
+                attendanceChart.update();
+            } catch(e) {}
         }
 
         async function addStudent() {
@@ -107,13 +127,21 @@
             const roll = document.getElementById('roll').value;
             const selectedClass = document.getElementById('class-select').value;
             const btn = document.getElementById('submitBtn');
-            if(!name || !roll) return alert("Missing data");
+            if(!name || !roll) return alert("Fill student details");
 
             btn.disabled = true;
-            btn.innerText = "Saving...";
-            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, roll, selectedClass }) });
-            alert("Attendance Saved!");
-            refreshChart();
+            btn.innerText = "Syncing...";
+            try {
+                await fetch(SCRIPT_URL, { 
+                    method: "POST", 
+                    mode: "no-cors",
+                    body: JSON.stringify({ name, roll, selectedClass }) 
+                });
+                alert("Attendance recorded!");
+                setTimeout(refreshChart, 2000);
+                document.getElementById('name').value = '';
+                document.getElementById('roll').value = '';
+            } catch (e) { alert("Sync Error!"); }
             btn.disabled = false;
             btn.innerText = "Submit Attendance";
         }
