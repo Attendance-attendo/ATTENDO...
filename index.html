@@ -3,124 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATTENDO...</title>
+    <title> Yuvan </title>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --danger: #ef4444; --success: #4ade80; }
         body { font-family: sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        .glass-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
+        input, select, button { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
         .hidden { display: none; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.8rem; text-align: left; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
+        .day-box { background: #0f172a; border: 1px solid #334155; padding: 5px; border-radius: 8px; min-height: 55px; font-size: 0.6rem; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 8px; }
     </style>
 </head>
-<body>
+<body onload="checkLogin()">
 
     <div id="auth-screen" class="glass-card">
-        <h1>ATTENDO...</h1>
+        <h1>Attendance </h1>
         <div id="login-fields">
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">Sign Up</p>
+            <div style="display:flex; justify-content: space-between; margin-top:10px; font-size:0.8rem;">
+                <span onclick="toggleAuth('signup')" style="cursor:pointer; text-decoration:underline;">Sign Up</span>
+                <span onclick="toggleAuth('forgot')" style="cursor:pointer; text-decoration:underline;">Forgot Password?</span>
+            </div>
         </div>
 
         <div id="signup-fields" class="hidden">
             <input type="text" id="reg-user" placeholder="Username">
-            <input type="email" id="reg-email" placeholder="Email ID">
+            <input type="email" id="reg-email" placeholder="Email">
             <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-secret" placeholder="Recovery Code">
-            <div id="otp-section" class="hidden">
+            <input type="text" id="reg-secret" placeholder="Secret Recovery Code">
+            <div id="signup-otp-section" class="hidden">
                 <input type="text" id="reg-otp" placeholder="Enter OTP">
-                <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Sign Up</button>
+                <button onclick="verifyAndSignup()" style="background:var(--success)">Register</button>
             </div>
-            <button id="otp-btn" onclick="requestOTP()">Send OTP</button>
-            <p onclick="toggleAuth(false)" style="cursor:pointer; text-decoration:underline;">Back to Login</p>
+            <button id="signup-otp-btn" onclick="requestOTP('signup')">Send OTP</button>
+            <p onclick="toggleAuth('login')" style="cursor:pointer;">Back to Login</p>
+        </div>
+
+        <div id="forgot-fields" class="hidden">
+            <h3>Recover Password</h3>
+            <input type="email" id="forgot-email" placeholder="Enter Registered Email">
+            <div id="recovery-options">
+                <button onclick="showRecovery('secret')">Use Recovery Code</button>
+                <button onclick="requestOTP('forgot')">Use Email OTP</button>
+            </div>
+            <div id="recovery-otp-section" class="hidden">
+                <input type="text" id="forgot-otp-input" placeholder="Enter OTP">
+                <button onclick="finishRecovery('otp')" style="background:var(--success)">Show Password</button>
+            </div>
+            <div id="recovery-secret-section" class="hidden">
+                <input type="text" id="forgot-secret-input" placeholder="Enter Recovery Code">
+                <button onclick="finishRecovery('secret')" style="background:var(--success)">Show Password</button>
+            </div>
+            <p onclick="toggleAuth('login')" style="cursor:pointer;">Back to Login</p>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden" style="width:100%; max-width:500px;">
+    <div id="dashboard" class="hidden" style="width:100%; max-width:600px;">
         <div class="glass-card">
-            <h2>Mark Attendance</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="user-display">Dashboard</h2>
+                <button onclick="logout()" style="width:auto; background:var(--danger); padding:5px 15px;">Logout</button>
+            </div>
+            <input type="date" id="att-date">
             <input type="text" id="name" placeholder="Student Name">
             <input type="number" id="roll" placeholder="Roll No">
             <div style="display:flex; gap:10px;">
-                <select id="class-select">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="section-select">
-                    <option>Sec A</option><option>Sec B</option><option>Sec C</option>
-                </select>
+                <select id="class-select"><option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option></select>
+                <select id="section-select"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <select id="period-select"><option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option></select>
-            <select id="status-select"><option value="Present">✅ Present</option><option value="Leave">📄 Leave</option></select>
-            <button onclick="addStudent()">Submit Attendance</button>
+            <select id="status-select"><option value="Present">Present</option><option value="Leave">Leave</option></select>
+            <button onclick="addStudent()">Submit</button>
         </div>
         <div class="glass-card">
-            <h3>Recent Records</h3>
-            <div id="student-list">Loading...</div>
+            <h3 id="cal-title">📅 Calendar</h3>
+            <div id="calendar-view" class="calendar-grid"></div>
         </div>
-        <button onclick="location.reload()" style="background:var(--danger)">Logout</button>
+        <div class="glass-card">
+            <h3>Export & Search</h3>
+            <input type="text" id="search-name" placeholder="Search name..." oninput="refreshAll()">
+            <button onclick="downloadCSV()" style="background:var(--success)">Download CSV</button>
+            <div id="student-list" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+        </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo3cNlf_1xxZaufZMljHEAFbk5vcz8-CJ6XLA06fa9Ek_VrAWd_hVSqxtaVqjpPnF9Qw/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXMM75ciqzFoMEV32PA8_Zia424UfPWF8YpgR6ltaXuumoE2PMssub3WsMbTBf78oU/exec";
         let generatedOTP = "";
+        let globalRecords = [];
 
-        function toggleAuth(isSignup) {
-            document.getElementById('login-fields').classList.toggle('hidden', isSignup);
-            document.getElementById('signup-fields').classList.toggle('hidden', !isSignup);
+        document.getElementById('att-date').valueAsDate = new Date();
+
+        function checkLogin() {
+            const user = localStorage.getItem('attendo_user');
+            if (user) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('user-display').innerText = "Hi, " + user;
+                refreshAll();
+            }
         }
 
-        async function requestOTP() {
-            const email = document.getElementById('reg-email').value;
-            const btn = document.getElementById('otp-btn');
-            btn.disabled = true; btn.innerText = "Sending...";
-            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "sendOTP", email: email }) });
-            const otp = await res.text();
-            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; }
-            else { generatedOTP = otp.trim(); alert("OTP Sent!"); document.getElementById('otp-section').classList.remove('hidden'); }
+        function toggleAuth(mode) {
+            ['login', 'signup', 'forgot'].forEach(m => document.getElementById(m + '-fields').classList.add('hidden'));
+            document.getElementById(mode + '-fields').classList.remove('hidden');
+        }
+
+        async function requestOTP(type) {
+            const email = type === 'signup' ? document.getElementById('reg-email').value : document.getElementById('forgot-email').value;
+            if(!email) return alert("Enter email");
+            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "sendOTP", email: email, type: type }) });
+            const response = await res.text();
+            if(response === "EXISTS") return alert("Email already registered!");
+            generatedOTP = response.trim();
+            alert("OTP Sent!");
+            if(type === 'signup') document.getElementById('signup-otp-section').classList.remove('hidden');
+            else { document.getElementById('recovery-options').classList.add('hidden'); document.getElementById('recovery-otp-section').classList.remove('hidden'); }
+        }
+
+        function showRecovery(mode) {
+            document.getElementById('recovery-options').classList.add('hidden');
+            document.getElementById('recovery-' + mode + '-section').classList.remove('hidden');
+        }
+
+        async function finishRecovery(method) {
+            const email = document.getElementById('forgot-email').value;
+            const inputVal = method === 'otp' ? document.getElementById('forgot-otp-input').value : document.getElementById('forgot-secret-input').value;
+            if(method === 'otp' && inputVal !== generatedOTP) return alert("Wrong OTP");
+            const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "recover", email: email, method: method, secret: inputVal })});
+            const pass = await res.text();
+            if(pass === "NOT_FOUND") alert("Not found"); else alert("Your Password: " + pass);
         }
 
         async function verifyAndSignup() {
             if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Wrong OTP");
             const data = { action: "signup", user: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pass: document.getElementById('reg-pass').value, secret: document.getElementById('reg-secret').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            alert("Account Created!"); location.reload();
+            alert("Success!"); location.reload();
         }
 
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
-            if ((await res.text()).trim() === "valid") {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                refreshAll();
-            } else alert("Invalid Login");
+            if ((await res.text()).trim() === "valid") { localStorage.setItem('attendo_user', user); location.reload(); }
+            else alert("Fail");
         }
 
+        function logout() { localStorage.removeItem('attendo_user'); location.reload(); }
+
         async function addStudent() {
-            const data = { roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, section: document.getElementById('section-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
+            const data = { date: document.getElementById('att-date').value, roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, section: document.getElementById('section-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
             alert("Marked!"); refreshAll();
         }
 
         async function refreshAll() {
+            renderCalendar();
             const res = await fetch(SCRIPT_URL);
-            const list = await res.json();
-            document.getElementById('student-list').innerHTML = list.reverse().slice(0,10).map(s => `
+            globalRecords = await res.json();
+            const search = document.getElementById('search-name').value.toLowerCase();
+            const filtered = globalRecords.filter(s => s.name.toLowerCase().includes(search)).reverse();
+            document.getElementById('student-list').innerHTML = filtered.slice(0, 10).map(s => `
                 <div class="student-item">
-                    <span><b>${s.name}</b> (${s.class}-${s.section})</span>
-                    <button style="width:auto;background:var(--danger);padding:5px;" onclick="deleteRecord(${s.row})">Del</button>
+                    <span><b>${s.name}</b> (${s.class})</span>
+                    <button style="width:auto; background:var(--danger); padding:5px 10px;" onclick="deleteRecord(${s.row})">Del</button>
                 </div>`).join('');
         }
 
         async function deleteRecord(row) {
-            if(!confirm("Delete?")) return;
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: row }) });
             refreshAll();
+        }
+
+        function downloadCSV() {
+            const search = document.getElementById('search-name').value.toLowerCase();
+            const data = globalRecords.filter(s => s.name.toLowerCase().includes(search));
+            let csv = "Date,Roll,Name,Class,Section,Period,Status\n";
+            data.forEach(s => csv += `${s.date},${s.roll},${s.name},${s.class},${s.section},${s.period},${s.status}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'attendance.csv'; a.click();
+        }
+
+        async function renderCalendar() {
+            const grid = document.getElementById('calendar-view');
+            const res = await fetch(`${SCRIPT_URL}?get=stats&t=${Date.now()}`);
+            const stats = await res.json();
+            grid.innerHTML = '';
+            const now = new Date();
+            const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            document.getElementById('cal-title').innerText = now.toLocaleString('default', { month: 'long' }) + " " + now.getFullYear();
+            for (let d = 1; d <= days; d++) {
+                const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const s = stats[key] || { Present:0, Leave:0 };
+                grid.innerHTML += `<div class="day-box"><div>${d}</div><div style="color:var(--success)">P:${s.Present}</div><div style="color:var(--danger)">L:${s.Leave}</div></div>`;
+            }
         }
     </script>
 </body>
