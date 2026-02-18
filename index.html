@@ -61,7 +61,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQQY1FKzKCv515dPmiAOzZFxzpLzFstjJ5m4sVn36_3s03sN9wyLoiLp8aNttJI43F1A/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyds3wHb2544ukl_RB2r2qG5q2tYLT1TqHE_PYJkzFcLeeq9fHWAYnpuELMgjk50agVag/exec";
         let generatedOTP = "";
 
         function toggleAuth(isSignup) {
@@ -75,7 +75,7 @@
             btn.disabled = true; btn.innerText = "Sending...";
             const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "sendOTP", email: email }) });
             const otp = await res.text();
-            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; }
+            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; btn.innerText = "Send OTP"; }
             else { generatedOTP = otp.trim(); alert("OTP Sent!"); document.getElementById('otp-section').classList.remove('hidden'); }
         }
 
@@ -83,19 +83,18 @@
             if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Wrong OTP");
             const data = { action: "signup", user: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pass: document.getElementById('reg-pass').value, secret: document.getElementById('reg-secret').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            alert("Success! Account created."); location.reload();
+            alert("Success! Login now."); location.reload();
         }
 
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const res = await fetch(`${SCRIPT_URL}?action=login&user=${user}&pass=${pass}`);
-            const text = await res.text();
-            if (text.trim() === "valid") {
+            if ((await res.text()).trim() === "valid") {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 refreshAll();
-            } else alert("Login Fail: " + text);
+            } else alert("Fail");
         }
 
         async function addStudent() {
