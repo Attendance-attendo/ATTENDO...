@@ -22,7 +22,7 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">New Account? Sign Up</p>
+            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">Sign Up</p>
         </div>
 
         <div id="signup-fields" class="hidden">
@@ -31,7 +31,7 @@
             <input type="password" id="reg-pass" placeholder="Password">
             <input type="text" id="reg-secret" placeholder="Recovery Code">
             <div id="otp-section" class="hidden">
-                <input type="text" id="reg-otp" placeholder="Enter 6-Digit OTP">
+                <input type="text" id="reg-otp" placeholder="Enter OTP">
                 <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Sign Up</button>
             </div>
             <button id="otp-btn" onclick="requestOTP()">Send OTP</button>
@@ -41,13 +41,18 @@
 
     <div id="dashboard" class="hidden" style="width:100%; max-width:500px;">
         <div class="glass-card">
-            <h2>Dashboard</h2>
+            <h2>Mark Attendance</h2>
             <input type="text" id="name" placeholder="Student Name">
             <input type="number" id="roll" placeholder="Roll No">
-            <select id="class-select">
-                <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-            </select>
+            <div style="display:flex; gap:10px;">
+                <select id="class-select">
+                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                </select>
+                <select id="section-select">
+                    <option>Sec A</option><option>Sec B</option><option>Sec C</option>
+                </select>
+            </div>
             <select id="period-select"><option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option></select>
             <select id="status-select"><option value="Present">✅ Present</option><option value="Leave">📄 Leave</option></select>
             <button onclick="addStudent()">Submit Attendance</button>
@@ -60,7 +65,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKyYgri6bcmDiNAhjozI-Fg7IomwEXNoQ6gqlqfwATs04UQt3wcFwvIk8UKsmJdUaZRA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo3cNlf_1xxZaufZMljHEAFbk5vcz8-CJ6XLA06fa9Ek_VrAWd_hVSqxtaVqjpPnF9Qw/exec";
         let generatedOTP = "";
 
         function toggleAuth(isSignup) {
@@ -97,7 +102,7 @@
         }
 
         async function addStudent() {
-            const data = { roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
+            const data = { roll: document.getElementById('roll').value, name: document.getElementById('name').value, selectedClass: document.getElementById('class-select').value, section: document.getElementById('section-select').value, period: document.getElementById('period-select').value, status: document.getElementById('status-select').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
             alert("Marked!"); refreshAll();
         }
@@ -107,13 +112,13 @@
             const list = await res.json();
             document.getElementById('student-list').innerHTML = list.reverse().slice(0,10).map(s => `
                 <div class="student-item">
-                    <span><b>${s.name}</b> (${s.class})</span>
+                    <span><b>${s.name}</b> (${s.class}-${s.section})</span>
                     <button style="width:auto;background:var(--danger);padding:5px;" onclick="deleteRecord(${s.row})">Del</button>
                 </div>`).join('');
         }
 
         async function deleteRecord(row) {
-            if(!confirm("Delete this record?")) return;
+            if(!confirm("Delete?")) return;
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: row }) });
             refreshAll();
         }
