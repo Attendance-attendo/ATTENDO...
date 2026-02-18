@@ -9,8 +9,7 @@
         body { font-family: sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 500px; text-align: center; margin-bottom: 20px; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:disabled { background: #475569; }
+        button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; }
         .hidden { display: none; }
         .student-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.8rem; text-align: left; }
     </style>
@@ -23,7 +22,7 @@
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
             <button onclick="handleLogin()">Login</button>
-            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">Sign Up</p>
+            <p onclick="toggleAuth(true)" style="cursor:pointer; text-decoration:underline;">New Account? Sign Up</p>
         </div>
 
         <div id="signup-fields" class="hidden">
@@ -32,7 +31,7 @@
             <input type="password" id="reg-pass" placeholder="Password">
             <input type="text" id="reg-secret" placeholder="Recovery Code">
             <div id="otp-section" class="hidden">
-                <input type="text" id="reg-otp" placeholder="Enter OTP">
+                <input type="text" id="reg-otp" placeholder="Enter 6-Digit OTP">
                 <button onclick="verifyAndSignup()" style="background: var(--success)">Verify & Sign Up</button>
             </div>
             <button id="otp-btn" onclick="requestOTP()">Send OTP</button>
@@ -42,16 +41,16 @@
 
     <div id="dashboard" class="hidden" style="width:100%; max-width:500px;">
         <div class="glass-card">
-            <h2>Mark Attendance</h2>
-            <input type="text" id="name" placeholder="Name">
+            <h2>Dashboard</h2>
+            <input type="text" id="name" placeholder="Student Name">
             <input type="number" id="roll" placeholder="Roll No">
             <select id="class-select">
                 <option>Class 6</option><option>Class 7</option><option>Class 8</option>
                 <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
             </select>
             <select id="period-select"><option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option></select>
-            <select id="status-select"><option value="Present">Present</option><option value="Leave">Leave</option></select>
-            <button onclick="addStudent()">Submit</button>
+            <select id="status-select"><option value="Present">✅ Present</option><option value="Leave">📄 Leave</option></select>
+            <button onclick="addStudent()">Submit Attendance</button>
         </div>
         <div class="glass-card">
             <h3>Recent Records</h3>
@@ -61,7 +60,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyds3wHb2544ukl_RB2r2qG5q2tYLT1TqHE_PYJkzFcLeeq9fHWAYnpuELMgjk50agVag/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKyYgri6bcmDiNAhjozI-Fg7IomwEXNoQ6gqlqfwATs04UQt3wcFwvIk8UKsmJdUaZRA/exec";
         let generatedOTP = "";
 
         function toggleAuth(isSignup) {
@@ -75,7 +74,7 @@
             btn.disabled = true; btn.innerText = "Sending...";
             const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "sendOTP", email: email }) });
             const otp = await res.text();
-            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; btn.innerText = "Send OTP"; }
+            if(otp.includes("ERROR")) { alert(otp); btn.disabled = false; }
             else { generatedOTP = otp.trim(); alert("OTP Sent!"); document.getElementById('otp-section').classList.remove('hidden'); }
         }
 
@@ -83,7 +82,7 @@
             if (document.getElementById('reg-otp').value !== generatedOTP) return alert("Wrong OTP");
             const data = { action: "signup", user: document.getElementById('reg-user').value, email: document.getElementById('reg-email').value, pass: document.getElementById('reg-pass').value, secret: document.getElementById('reg-secret').value };
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            alert("Success! Login now."); location.reload();
+            alert("Account Created!"); location.reload();
         }
 
         async function handleLogin() {
@@ -94,7 +93,7 @@
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 refreshAll();
-            } else alert("Fail");
+            } else alert("Invalid Login");
         }
 
         async function addStudent() {
@@ -114,6 +113,7 @@
         }
 
         async function deleteRecord(row) {
+            if(!confirm("Delete this record?")) return;
             await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", rowNum: row }) });
             refreshAll();
         }
