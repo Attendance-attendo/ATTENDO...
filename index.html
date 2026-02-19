@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATTENDO | Session Secure</title>
+    <title>ATTENDO | Secure Attendance</title>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --text: #ffffff; --success: #22c55e; --danger: #ef4444; --warning: #f59e0b; }
         body.light { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-        .card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid rgba(128,128,128,0.2); width: 95%; max-width: 500px; margin-bottom: 20px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid rgba(128,128,128,0.3); background: var(--bg); color: var(--text); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        .card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid rgba(128,128,128,0.2); width: 95%; max-width: 500px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid rgba(128,128,128,0.3); background: var(--bg); color: var(--text); box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
         .tab-nav { display: flex; gap: 5px; width: 95%; max-width: 500px; margin-bottom: 15px; }
         .tab-btn { flex: 1; opacity: 0.5; background: var(--card); }
         .tab-btn.active { opacity: 1; border: 2px solid var(--primary); }
         .student-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(128,128,128,0.05); border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary); }
-        .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: white; }
+        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: white; }
         .hidden { display: none; }
     </style>
 </head>
@@ -23,137 +23,186 @@
 
     <button style="position:fixed; top:10px; right:10px; width:auto; padding:5px 10px; z-index:100;" onclick="toggleTheme()">🌓 Theme</button>
 
-    <div id="login-card" class="card">
+    <div id="auth-card" class="card">
         <h1 style="text-align:center;">ATTENDO</h1>
-        <p style="text-align:center; opacity:0.6;">Session Login (Auto-out on tab close)</p>
-        <input type="text" id="l-user" placeholder="Username">
-        <input type="password" id="l-pass" placeholder="Password">
-        <button onclick="login()">Login</button>
+        <p style="text-align:center; opacity:0.6; margin-bottom:20px;">Session-Secure Access</p>
+        
+        <div id="login-box">
+            <input type="text" id="l-user" placeholder="Username">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:15px; opacity:0.8;">
+                <span onclick="showAuth('signup')" style="cursor:pointer; text-decoration:underline;">Create Account</span>
+                <span onclick="showAuth('forgot')" style="cursor:pointer; text-decoration:underline;">Forgot Password?</span>
+            </div>
+        </div>
+
+        <div id="signup-box" class="hidden">
+            <input type="text" id="s-user" placeholder="New Admin Name">
+            <input type="email" id="s-email" placeholder="Email Address">
+            <input type="password" id="s-pass" placeholder="Create Password">
+            <input type="text" id="s-secret" placeholder="Secret Recovery Code">
+            <div id="signup-otp-area" class="hidden">
+                <input type="text" id="s-otp" placeholder="Enter OTP">
+                <button onclick="completeSignup()" style="background:var(--success)">Finish Registration</button>
+            </div>
+            <button id="s-otp-btn" onclick="sendOTP('signup')">Verify Email (OTP)</button>
+            <p onclick="showAuth('login')" style="cursor:pointer; text-align:center; margin-top:15px; font-size:0.8rem;">Back to Login</p>
+        </div>
+
+        <div id="forgot-box" class="hidden">
+            <input type="email" id="f-email" placeholder="Registered Email">
+            <div id="f-options">
+                <button onclick="recoveryMode('secret')" style="background:#475569;">Use Secret Code</button>
+                <button onclick="sendOTP('forgot')" style="background:#475569;">Use Email OTP</button>
+            </div>
+            <div id="f-verify-area" class="hidden">
+                <input type="text" id="f-input" placeholder="Enter Code or OTP">
+                <button onclick="finishRecovery()" style="background:var(--success)">Show Password</button>
+            </div>
+            <p onclick="showAuth('login')" style="cursor:pointer; text-align:center; margin-top:15px; font-size:0.8rem;">Back to Login</p>
+        </div>
     </div>
 
     <div id="main-ui" class="hidden">
         <div class="tab-nav">
-            <button id="t-att" class="tab-btn active" onclick="showTab('att')">Attendance</button>
-            <button id="t-ros" class="tab-btn" onclick="showTab('ros')">Roster</button>
+            <button id="t-att" class="tab-btn active" onclick="switchTab('att')">Attendance</button>
+            <button id="t-ros" class="tab-btn" onclick="switchTab('ros')">Roster</button>
         </div>
 
         <div id="att-view" class="card">
             <input type="date" id="att-date">
             <div style="display:flex; gap:10px;">
-                <select id="f-class" onchange="renderList()"><option value="">Class</option><option>Class 11</option><option>Class 12</option></select>
-                <select id="f-sec" onchange="renderList()"><option value="">Sec</option><option>Sec A</option><option>Sec B</option></select>
+                <select id="fc" onchange="renderAttendance()"><option value="">Class</option><option>Class 11</option><option>Class 12</option></select>
+                <select id="fs" onchange="renderAttendance()"><option value="">Section</option><option>Sec A</option><option>Sec B</option></select>
             </div>
-            <div id="roster-target" style="margin-top:20px;">Select Class and Section</div>
+            <div id="att-list" style="margin-top:20px;">Please pick Class and Section.</div>
         </div>
 
         <div id="ros-view" class="card hidden">
             <h3>Add New Student</h3>
-            <input type="text" id="r-name" placeholder="Full Name">
-            <input type="number" id="r-roll" placeholder="Roll No">
-            <select id="r-class"><option>Class 11</option><option>Class 12</option></select>
-            <select id="r-sec"><option>Sec A</option><option>Sec B</option></select>
-            <button onclick="addToRoster()">Save to Roster</button>
+            <input type="text" id="rn" placeholder="Name">
+            <input type="number" id="rr" placeholder="Roll No">
+            <select id="rc"><option>Class 11</option><option>Class 12</option></select>
+            <select id="rs"><option>Sec A</option><option>Sec B</option></select>
+            <button onclick="addRoster()">Save Student</button>
             <hr style="opacity:0.1; margin:20px 0;">
-            <div id="full-roster" style="text-align:left; font-size:0.8rem;"></div>
+            <div id="full-roster" style="text-align:left; font-size:0.8rem; max-height:200px; overflow-y:auto;"></div>
         </div>
         
-        <button onclick="logout()" style="background:var(--danger); width:95%; max-width:500px;">Logout</button>
+        <button onclick="logout()" style="background:var(--danger); width:95%; max-width:500px;">Log Out</button>
     </div>
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycbwTjqPo476mky9SLugoZkpi3qKAM5db1ifAB3LJ75PT-9Gs8wT4yoiJJolflWZVu8VKHw/exec";
-        let rosterData = [];
+        let tempOTP = ""; let rosterData = []; let currentRecovery = "";
 
         function initApp() {
-            // Theme stays localStorage because that's safe for preferences
             if(localStorage.getItem('att_theme') === 'light') document.body.classList.add('light');
-            
-            // Login uses sessionStorage (Wipes when tab closes)
             if(sessionStorage.getItem('att_session')) {
-                document.getElementById('login-card').classList.add('hidden');
+                document.getElementById('auth-card').classList.add('hidden');
                 document.getElementById('main-ui').classList.remove('hidden');
                 fetchRoster();
             }
             document.getElementById('att-date').valueAsDate = new Date();
         }
 
+        function showAuth(mode) {
+            ['login','signup','forgot'].forEach(m => document.getElementById(m+'-box').classList.add('hidden'));
+            document.getElementById(mode+'-box').classList.remove('hidden');
+        }
+
         async function login() {
             const user = document.getElementById('l-user').value;
             const pass = document.getElementById('l-pass').value;
             const res = await fetch(`${API}?action=login&user=${user}&pass=${pass}`);
-            if ((await res.text()) === "valid") {
-                sessionStorage.setItem('att_session', user); // SECURE SESSION
-                location.reload();
-            } else alert("Invalid Login");
+            if((await res.text()) === "valid") { sessionStorage.setItem('att_session', user); location.reload(); }
+            else alert("Login Failed!");
+        }
+
+        async function sendOTP(type) {
+            const email = type === 'signup' ? document.getElementById('s-email').value : document.getElementById('f-email').value;
+            if(!email) return alert("Enter email address");
+            const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"sendOTP", email}) });
+            tempOTP = (await res.text()).trim();
+            alert("OTP Sent!");
+            if(type === 'signup') document.getElementById('signup-otp-area').classList.remove('hidden');
+            else { currentRecovery = "otp"; document.getElementById('f-options').classList.add('hidden'); document.getElementById('f-verify-area').classList.remove('hidden'); }
+        }
+
+        async function finishRecovery() {
+            const email = document.getElementById('f-email').value;
+            const val = document.getElementById('f-input').value;
+            if(currentRecovery === 'otp' && val !== tempOTP) return alert("Wrong OTP");
+            const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"recover", email, method: currentRecovery, secret: val}) });
+            const pass = await res.text();
+            alert(pass === "NOT_FOUND" ? "Incorrect details" : "Your Password: " + pass);
+        }
+
+        async function completeSignup() {
+            if(document.getElementById('s-otp').value !== tempOTP) return alert("Wrong OTP");
+            const data = { action:"signup", user: document.getElementById('s-user').value, email: document.getElementById('s-email').value, pass: document.getElementById('s-pass').value, secret: document.getElementById('s-secret').value };
+            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
+            alert("Admin Created! Login now."); location.reload();
         }
 
         async function fetchRoster() {
             const res = await fetch(`${API}?get=roster`);
             rosterData = await res.json();
-            renderRosterList();
-        }
-
-        function renderList() {
-            const cls = document.getElementById('f-class').value;
-            const sec = document.getElementById('f-sec').value;
-            const target = document.getElementById('roster-target');
-            if(!cls || !sec) return;
-
-            const filtered = rosterData.filter(s => s.class === cls && s.section === sec);
-            target.innerHTML = filtered.map(s => `
-                <div class="student-item">
-                    <span><b>${s.name}</b></span>
-                    <div id="ctrl-${s.roll}">
-                        <button style="width:35px; background:var(--success)" onclick="mark('${s.name}','${s.roll}','Present')">P</button>
-                        <button style="width:35px; background:var(--danger)" onclick="mark('${s.name}','${s.roll}','Leave')">L</button>
-                        <button style="width:45px; background:var(--warning)" onclick="mark('${s.name}','${s.roll}','Late')">Late</button>
-                    </div>
+            document.getElementById('full-roster').innerHTML = rosterData.map(s => `
+                <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid rgba(128,128,128,0.1);">
+                    <span>${s.name} (${s.class}-${s.section})</span>
+                    <span style="color:var(--danger); cursor:pointer;" onclick="deleteStudent('${s.roll}','${s.class}')">✕</span>
                 </div>
             `).join('');
         }
 
+        function renderAttendance() {
+            const c = document.getElementById('fc').value, s = document.getElementById('fs').value;
+            if(!c || !s) return;
+            const filtered = rosterData.filter(x => x.class === c && x.section === s);
+            document.getElementById('att-list').innerHTML = filtered.map(x => `
+                <div class="student-item">
+                    <span>${x.name}</span>
+                    <div id="ctrl-${x.roll}">
+                        <button onclick="mark('${x.name}','${x.roll}','Present')" style="width:35px; background:var(--success)">P</button>
+                        <button onclick="mark('${x.name}','${x.roll}','Leave')" style="width:35px; background:var(--danger)">L</button>
+                        <button onclick="mark('${x.name}','${x.roll}','Late')" style="width:45px; background:var(--warning)">Late</button>
+                    </div>
+                </div>
+            `).join('') || "No students found.";
+        }
+
         async function mark(name, roll, status) {
-            const data = { action: "markAttendance", date: document.getElementById('att-date').value, name, roll, status, 
-                           selectedClass: document.getElementById('f-class').value, section: document.getElementById('f-sec').value };
-            await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+            const data = { action:"markAttendance", date: document.getElementById('att-date').value, name, roll, status, selectedClass: document.getElementById('fc').value, section: document.getElementById('fs').value };
+            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
             const color = status === 'Present' ? 'var(--success)' : status === 'Leave' ? 'var(--danger)' : 'var(--warning)';
             document.getElementById(`ctrl-${roll}`).innerHTML = `<span class="status-pill" style="background:${color}">${status}</span>`;
         }
 
-        async function addToRoster() {
-            const data = { action: "addToRoster", name: document.getElementById('r-name').value, roll: document.getElementById('r-roll').value, 
-                           selectedClass: document.getElementById('r-class').value, section: document.getElementById('r-sec').value };
-            await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+        async function addRoster() {
+            const data = { action:"addToRoster", name: document.getElementById('rn').value, roll: document.getElementById('rr').value, selectedClass: document.getElementById('rc').value, section: document.getElementById('rs').value };
+            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
             alert("Added!"); fetchRoster();
         }
 
-        function renderRosterList() {
-            document.getElementById('full-roster').innerHTML = rosterData.map(s => `
-                <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid rgba(128,128,128,0.1);">
-                    <span>${s.name} (${s.class}-${s.section})</span>
-                    <span style="color:var(--danger); cursor:pointer;" onclick="deleteStudent('${s.roll}','${s.class}')">Delete</span>
-                </div>
-            `).join('');
-        }
-
-        async function deleteStudent(roll, cls) {
-            if(!confirm("Delete?")) return;
-            await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "deleteFromRoster", roll, selectedClass: cls }) });
+        async function deleteStudent(roll, selectedClass) {
+            if(!confirm("Remove student?")) return;
+            await fetch(API, { method:"POST", mode: "no-cors", body: JSON.stringify({action:"deleteFromRoster", roll, selectedClass}) });
             fetchRoster();
         }
 
-        function showTab(t) {
-            document.getElementById('att-view').classList.toggle('hidden', t !== 'att');
-            document.getElementById('ros-view').classList.toggle('hidden', t !== 'ros');
-            document.getElementById('t-att').classList.toggle('active', t === 'att');
-            document.getElementById('t-ros').classList.toggle('active', t === 'ros');
+        function switchTab(t) {
+            document.getElementById('att-view').classList.toggle('hidden', t!=='att');
+            document.getElementById('ros-view').classList.toggle('hidden', t!=='ros');
+            document.getElementById('t-att').classList.toggle('active', t==='att');
+            document.getElementById('t-ros').classList.toggle('active', t==='ros');
+            if(t==='att') renderAttendance();
         }
 
+        function recoveryMode(m) { currentRecovery = m; document.getElementById('f-options').classList.add('hidden'); document.getElementById('f-verify-area').classList.remove('hidden'); }
         function logout() { sessionStorage.removeItem('att_session'); location.reload(); }
-        function toggleTheme() {
-            document.body.classList.toggle('light');
-            localStorage.setItem('att_theme', document.body.classList.contains('light') ? 'light' : 'dark');
-        }
+        function toggleTheme() { document.body.classList.toggle('light'); localStorage.setItem('att_theme', document.body.classList.contains('light') ? 'light' : 'dark'); }
     </script>
 </body>
 </html>
