@@ -12,10 +12,7 @@
         .sub-header { opacity: 0.6; margin-bottom: 30px; font-size: 0.95rem; }
         input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; font-size: 1rem; box-sizing: border-box; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
-        .tab-nav { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; background: #334155; color: white; cursor: pointer; font-weight: bold; }
-        .tab-btn.active { background: var(--primary); }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); text-align: left; }
+        button:disabled { opacity: 0.5; }
         .auth-links { display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.85rem; }
         .auth-links span { cursor: pointer; text-decoration: underline; opacity: 0.8; }
         #toast { visibility: hidden; min-width: 250px; background-color: var(--success); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; }
@@ -23,6 +20,7 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
         .hidden { display: none; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); text-align: left;}
     </style>
 </head>
 <body onload="initApp()">
@@ -30,7 +28,8 @@
 
     <div id="auth-card" class="card">
         <h1>ATTENDO</h1>
-        <p class="sub-header">Session Login (Auto-out on tab close)</p>
+        <p class="sub-header" id="auth-sub">Session Login (Auto-out on tab close)</p>
+        
         <div id="login-box">
             <input type="text" id="l-user" placeholder="Username">
             <input type="password" id="l-pass" placeholder="Password">
@@ -40,13 +39,26 @@
                 <span onclick="showAuth('forgot')">Forgot Password?</span>
             </div>
         </div>
+
+        <div id="signup-box" class="hidden">
+            <input type="text" id="s-user" placeholder="Admin Username">
+            <input type="email" id="s-email" placeholder="Email">
+            <input type="password" id="s-pass" placeholder="Password">
+            <input type="text" id="s-secret" placeholder="Recovery Secret">
+            <button id="s-otp-btn" onclick="sendOTP('signup')">Send OTP</button>
+            <div id="signup-otp-area" class="hidden">
+                <input type="text" id="s-otp" placeholder="Enter OTP">
+                <button onclick="completeSignup()" style="background:var(--success)">Register Now</button>
+            </div>
+            <p onclick="showAuth('login')" style="cursor:pointer; margin-top:20px; font-size: 0.9rem;">Back to Login</p>
+        </div>
     </div>
 
     <div id="main-ui" class="hidden" style="width: 100%; max-width: 500px;">
         <div class="card">
-            <div class="tab-nav">
-                <button id="btn-att" class="tab-btn active" onclick="switchTab('att')">Attendance</button>
-                <button id="btn-ros" class="tab-btn" onclick="switchTab('ros')">Roster</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px; gap:10px;">
+                <button onclick="switchTab('att')" style="margin:0; flex:1;">Attendance</button>
+                <button onclick="switchTab('ros')" style="margin:0; flex:1; background:#334155;">Roster</button>
             </div>
             <div id="att-view">
                 <input type="date" id="att-date">
@@ -56,9 +68,7 @@
                         <option>Class 6</option><option>Class 7</option><option>Class 8</option>
                         <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                     </select>
-                    <select id="fs" onchange="renderAttendance()">
-                        <option value="">Sec A</option><option value="">Sec B</option>
-                    </select>
+                    <select id="fs" onchange="renderAttendance()"><option value="">Sec A</option><option value="">Sec B</option></select>
                 </div>
                 <div id="att-list" style="margin-top:20px;"></div>
             </div>
@@ -72,13 +82,13 @@
                 <select id="rs"><option>Sec A</option><option>Sec B</option></select>
                 <button onclick="addRoster()">Save Student</button>
             </div>
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout</button>
+            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout System</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyNF303QvDahW24SZp4y8x7gDBuWw42Dw1rgJC3yhdj8aY9crm0Xt7FfhU0kJ3KlVFZjg/exec";
-        let rosterData = [];
+        const API = "https://script.google.com/macros/s/AKfycbyRvbuPXhnJYyODVC0VYFnhIpGdBzN8cDbD_-PNLidUuj58pDyhsiNqtG9sfmVxZSmy2g/exec";
+        let tempOTP = ""; let rosterData = [];
 
         function toast(msg, color = "var(--success)") {
             const x = document.getElementById("toast");
@@ -89,9 +99,38 @@
         async function login() {
             const u = document.getElementById('l-user').value.trim();
             const p = document.getElementById('l-pass').value.trim();
-            const res = await fetch(`${API}?action=login&user=${u}&pass=${p}`);
-            if((await res.text()).trim() === "valid") { sessionStorage.setItem('att_session', u); location.reload(); }
-            else toast("Login Failed", "var(--danger)");
+            if(!u || !p) return toast("Fill all fields", "var(--danger)");
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true; btn.innerText = "Verifying...";
+            try {
+                const res = await fetch(`${API}?action=login&user=${u}&pass=${p}`);
+                const result = await res.text();
+                if(result.trim() === "valid") { sessionStorage.setItem('att_session', u); location.reload(); }
+                else { toast("Invalid Login", "var(--danger)"); btn.disabled = false; btn.innerText = "Login"; }
+            } catch(e) { toast("Error!", "var(--danger)"); btn.disabled = false; btn.innerText = "Login"; }
+        }
+
+        async function sendOTP(type) {
+            const email = document.getElementById('s-email').value.trim();
+            const btn = document.getElementById('s-otp-btn');
+            if(!email) return toast("Enter email!", "var(--danger)");
+            btn.disabled = true; btn.innerText = "Sending...";
+            try {
+                const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"sendOTP", email}) });
+                tempOTP = (await res.text()).trim();
+                toast("OTP Sent!");
+                document.getElementById('signup-otp-area').classList.remove('hidden');
+                btn.classList.add('hidden');
+            } catch(e) { toast("Error!", "var(--danger)"); btn.disabled = false; }
+        }
+
+        async function completeSignup() {
+            if(document.getElementById('s-otp').value.trim() !== tempOTP) return toast("Wrong OTP", "var(--danger)");
+            const data = { action:"signup", user: document.getElementById('s-user').value, email: document.getElementById('s-email').value, pass: document.getElementById('s-pass').value, secret: document.getElementById('s-secret').value };
+            const res = await fetch(API, { method:"POST", body: JSON.stringify(data) });
+            const result = await res.text();
+            if(result === "EXISTS") toast("Email already used!", "var(--danger)");
+            else { toast("Success! Please Login."); location.reload(); }
         }
 
         function initApp() {
@@ -103,22 +142,30 @@
             document.getElementById('att-date').valueAsDate = new Date();
         }
 
+        function showAuth(m) {
+            ['login-box','signup-box'].forEach(x => document.getElementById(x).classList.add('hidden'));
+            document.getElementById(m + '-box').classList.remove('hidden');
+            document.getElementById('auth-sub').innerText = m === 'signup' ? 'Admin Registration' : 'Session Login';
+        }
+
+        async function addRoster() {
+            const data = { action:"addToRoster", name: document.getElementById('rn').value, roll: document.getElementById('rr').value, selectedClass: document.getElementById('rc').value, section: document.getElementById('rs').value };
+            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
+            toast("✅ Student Added!");
+            fetchRoster();
+        }
+
         async function fetchRoster() {
             const res = await fetch(`${API}?get=roster`);
             rosterData = await res.json();
-            renderAttendance(); // Try to render if filters are already set
+            renderAttendance();
         }
 
         function renderAttendance() {
-            const c = document.getElementById('fc').value;
-            const s = document.getElementById('fs').value;
-            const listDiv = document.getElementById('att-list');
-            if(!c || !s) { listDiv.innerHTML = "Select Class & Section"; return; }
-            
+            const c = document.getElementById('fc').value, s = document.getElementById('fs').value;
+            if(!c || !s) return;
             const filtered = rosterData.filter(x => x.class === c && x.section === s);
-            if(filtered.length === 0) { listDiv.innerHTML = "No students found in this section."; return; }
-
-            listDiv.innerHTML = filtered.map(x => `
+            document.getElementById('att-list').innerHTML = filtered.map(x => `
                 <div class="student-item">
                     <span>${x.name} (Roll: ${x.roll})</span>
                     <div id="ctrl-${x.roll}"><button onclick="mark('${x.name}','${x.roll}','P')" style="width:50px; background:var(--success); margin:0; padding:8px;">P</button></div>
@@ -129,15 +176,13 @@
         async function mark(n, r, st) {
             const data = { action:"markAttendance", date: document.getElementById('att-date').value, name:n, roll:r, status:st, selectedClass: document.getElementById('fc').value, section: document.getElementById('fs').value };
             await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
-            toast(`✅ ${n} marked Present!`);
+            toast(`✅ Marked Present!`);
             document.getElementById(`ctrl-${r}`).innerHTML = "✓";
         }
 
         function switchTab(t) {
             document.getElementById('att-view').classList.toggle('hidden', t!=='att');
             document.getElementById('ros-view').classList.toggle('hidden', t!=='ros');
-            document.getElementById('btn-att').classList.toggle('active', t==='att');
-            document.getElementById('btn-ros').classList.toggle('active', t==='ros');
         }
 
         function logout() { sessionStorage.removeItem('att_session'); location.reload(); }
