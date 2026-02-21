@@ -3,86 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATTENDO | God Mode</title>
+    <title>Yuvan | Attendo</title>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --input-bg: #111827; --text: #ffffff; --success: #22c55e; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; transition: 0.5s; }
-        .card { background: var(--card); padding: 40px; border-radius: 20px; width: 95%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; box-sizing: border-box; }
-        h1 { font-size: 2.5rem; margin: 0 0 10px 0; letter-spacing: 2px; }
-        .sub-header { opacity: 0.6; margin-bottom: 30px; font-size: 0.95rem; }
-        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; font-size: 1rem; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: var(--card); padding: 35px; border-radius: 20px; width: 95%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; box-sizing: border-box; }
+        h1 { font-size: 2.2rem; margin: 0 0 10px 0; letter-spacing: 2px; }
+        .sub-header { opacity: 0.6; margin-bottom: 25px; font-size: 0.85rem; }
+        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; font-size: 0.95rem; box-sizing: border-box; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         #toast { visibility: hidden; min-width: 250px; background-color: var(--success); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
         .hidden { display: none; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
     </style>
 </head>
 <body onload="initApp()">
     <div id="toast"></div>
 
     <div id="auth-card" class="card">
-        <h1>ATTENDO</h1>
-        <p class="sub-header" id="auth-sub">System Access</p>
-        <div id="login-box">
-            <input type="text" id="l-user" placeholder="Username">
-            <input type="password" id="l-pass" placeholder="Password">
-            <button onclick="login()">Login</button>
-        </div>
+        <h1>ATTENDANCE</h1>
+        <p class="sub-header">A simple Attendance page built by Yuvan</p>
+        <input type="text" id="l-user" placeholder="Username">
+        <input type="password" id="l-pass" placeholder="Password">
+        <button onclick="login()">Login</button>
     </div>
 
     <div id="main-ui" class="hidden" style="width: 100%; max-width: 480px;">
         <div id="ai-god-panel" class="card hidden" style="border: 2px solid var(--primary); margin-bottom: 20px; padding: 20px; background: rgba(99, 102, 241, 0.05);">
-            <h3 style="margin:0 0 10px 0; color: var(--primary); font-size: 0.8rem;">✨ YUVAN'S AI COMMANDER</h3>
-            <input type="text" id="ai-cmd" placeholder="e.g. Change theme to lime">
-            <div style="display:flex; gap:10px;">
-                <button onclick="executeAI()" style="flex:2; font-size: 0.8rem;">Execute</button>
-                <button onclick="copySync()" style="flex:1; background:#24292f; font-size: 0.8rem;">Sync</button>
-            </div>
+            <h3 style="margin:0 0 10px 0; color: var(--primary); font-size: 0.8rem; letter-spacing: 1px;">AI CENTRE</h3>
+            <input type="text" id="ai-cmd" placeholder="Ask Gemini: Add student Rahul roll 10...">
+            <button onclick="executeAI()" style="margin-top: 10px; font-size: 0.8rem;">Execute with Gemini</button>
         </div>
 
         <div class="card" style="padding: 25px;">
             <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                <button id="btn-att" onclick="switchTab('att')" style="flex:1; margin:0;">Attendance</button>
-                <button id="btn-ros" onclick="switchTab('ros')" style="flex:1; margin:0; background:#334155;">Roster</button>
+                <button onclick="switchTab('att')" style="flex:1; margin:0;">Attendance</button>
+                <button onclick="switchTab('ros')" style="flex:1; margin:0; background:#334155;">Roster</button>
             </div>
-
+            
             <div id="att-view">
                 <input type="date" id="att-date">
                 <div style="display:flex; gap:10px;">
                     <select id="fc" onchange="renderAttendance()">
                         <option value="">Class</option>
-                        <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                        <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                        <option>Class 6</option><option>Class 7</option>
+                        <option>Class 8</option><option>Class 9</option>
+                        <option>Class 10</option><option>Class 11</option>
                     </select>
-                    <select id="fs" onchange="renderAttendance()"><option value="">Sec A</option><option>Sec B</option></select>
+                    <select id="fs" onchange="renderAttendance()">
+                        <option value="">Section</option>
+                        <option>Sec A</option>
+                        <option>Sec B</option>
+                    </select>
                 </div>
-                <div id="att-list" style="margin-top:20px;"></div>
+                <div id="att-list" style="margin-top:15px;"></div>
             </div>
 
             <div id="ros-view" class="hidden">
-                <input type="text" id="rn" placeholder="Student Name">
-                <input type="number" id="rr" placeholder="Roll No">
-                <select id="rc">
-                    <option value="">Select Class</option>
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="rs">
-                    <option value="">Select Section</option>
-                    <option>Sec A</option><option>Sec B</option>
-                </select>
-                <button onclick="addRoster()" style="margin-top: 10px;">Manual Add</button>
+                <input type="text" id="rn" placeholder="Manual Name">
+                <input type="number" id="rr" placeholder="Manual Roll">
+                <button onclick="addRoster()">Add to Sheet</button>
             </div>
             
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout</button>
+            <button onclick="logout()" style="background:var(--danger); margin-top:20px; font-size: 0.8rem;">Logout System</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbzx1lrIOYmwVnnYkJgcD7bSw_49ocCg6VXfR57fC9ZIPrxypu9XfSdzmfLKRsZNcrUYfA/exec";
+        const API = "https://script.google.com/macros/s/AKfycby2oISypvkjjziFrj4c4TfSpMFIGafmBXA9j_69be_SMkW4kG5lecGFy7C3Q8tME7sTHg/exec";
         let rosterData = [];
 
         function toast(msg, color = "var(--success)") {
@@ -94,9 +85,18 @@
         async function login() {
             const u = document.getElementById('l-user').value.trim();
             const p = document.getElementById('l-pass').value.trim();
-            const res = await fetch(`${API}?action=login&user=${u}&pass=${p}`);
-            if((await res.text()).trim() === "valid") { sessionStorage.setItem('att_session', u); location.reload(); }
-            else toast("Login Failed", "var(--danger)");
+            try {
+                const res = await fetch(`${API}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
+                const result = await res.text();
+                if(result.trim() === "valid") { 
+                    sessionStorage.setItem('att_session', u); 
+                    location.reload(); 
+                } else {
+                    toast("Login Failed", "var(--danger)");
+                }
+            } catch(e) {
+                toast("Connection Error", "var(--danger)");
+            }
         }
 
         function initApp() {
@@ -113,67 +113,66 @@
         }
 
         async function executeAI() {
-            const cmd = document.getElementById('ai-cmd').value;
+            const cmdInput = document.getElementById('ai-cmd');
+            const cmd = cmdInput.value.trim();
             if(!cmd) return;
-            if(cmd.toLowerCase().includes("change theme to")) {
-                const color = cmd.toLowerCase().split("to ")[1];
-                document.documentElement.style.setProperty('--primary', color);
-                toast("Theme updated to " + color);
-                document.getElementById('ai-cmd').value = "";
-                return;
+            toast("Gemini is thinking...", "var(--primary)");
+            try {
+                const res = await fetch(API, { method: "POST", body: JSON.stringify({ action: "aiCommand", command: cmd }) });
+                const feedback = await res.text();
+                toast(feedback);
+                cmdInput.value = "";
+                fetchRoster();
+            } catch(e) {
+                toast("AI Error", "var(--danger)");
             }
-            toast("AI Processing...", "var(--primary)");
-            const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"aiCommand", command:cmd}) });
-            toast(await res.text());
-            document.getElementById('ai-cmd').value = ""; fetchRoster();
-        }
-
-        async function copySync() {
-            const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"getDevLink"}) });
-            const link = await res.text();
-            await navigator.clipboard.writeText(link);
-            alert("Latest Link Copied! Update your GitHub API URL.");
         }
 
         async function fetchRoster() {
-            const res = await fetch(`${API}?get=roster`);
-            rosterData = await res.json();
-            renderAttendance();
+            try {
+                const res = await fetch(`${API}?get=roster`);
+                rosterData = await res.json();
+                renderAttendance();
+            } catch(e) {
+                console.log("Error fetching roster");
+            }
         }
 
         function renderAttendance() {
-            const c = document.getElementById('fc').value, s = document.getElementById('fs').value;
-            if(!c || !s) return;
+            const c = document.getElementById('fc').value;
+            const s = document.getElementById('fs').value;
+            const listDiv = document.getElementById('att-list');
+            if(!c || !s) {
+                listDiv.innerHTML = "Select Class & Section";
+                return;
+            }
             const filtered = rosterData.filter(x => x.class === c && x.section === s);
-            document.getElementById('att-list').innerHTML = filtered.map(x => `
+            listDiv.innerHTML = filtered.map(x => `
                 <div class="student-item">
-                    <span>${x.name}</span>
+                    <span>${x.name} (Roll: ${x.roll})</span>
                     <div id="ctrl-${x.roll}"><button onclick="mark('${x.name}','${x.roll}')" style="width:50px; background:var(--success); margin:0;">P</button></div>
                 </div>
-            `).join('');
+            `).join('') || "No students found.";
         }
 
         async function mark(n, r) {
-            const data = { action:"markAttendance", date: document.getElementById('att-date').value, name:n, roll:r, status:'P', selectedClass: document.getElementById('fc').value, section: document.getElementById('fs').value };
-            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
-            toast(`✅ Marked!`);
-            document.getElementById(`ctrl-${r}`).innerHTML = "✓";
-        }
-
-        async function addRoster() {
-            const nameEl = document.getElementById('rn'), rollEl = document.getElementById('rr');
-            const data = { action:"addToRoster", name: nameEl.value, roll: rollEl.value, selectedClass: document.getElementById('rc').value, section: document.getElementById('rs').value };
-            if(!data.name || !data.roll || !data.selectedClass || !data.section) return toast("All fields required", "var(--danger)");
-            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
-            toast("✅ Student Added!");
-            nameEl.value = ""; rollEl.value = ""; fetchRoster();
+            const data = { 
+                action: "markAttendance", 
+                date: document.getElementById('att-date').value, 
+                name: n, 
+                roll: r, 
+                status: 'P', 
+                selectedClass: document.getElementById('fc').value, 
+                section: document.getElementById('fs').value 
+            };
+            await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
+            toast(`Marked ${n} Present`);
+            document.getElementById(`ctrl-${r}`).innerHTML = "Confirmed";
         }
 
         function switchTab(t) {
-            document.getElementById('att-view').classList.toggle('hidden', t!=='att');
-            document.getElementById('ros-view').classList.toggle('hidden', t!=='ros');
-            document.getElementById('btn-att').classList.toggle('active', t==='att');
-            document.getElementById('btn-ros').classList.toggle('active', t==='ros');
+            document.getElementById('att-view').classList.toggle('hidden', t !== 'att');
+            document.getElementById('ros-view').classList.toggle('hidden', t !== 'ros');
         }
 
         function logout() { sessionStorage.removeItem('att_session'); location.reload(); }
