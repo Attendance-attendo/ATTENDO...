@@ -25,7 +25,7 @@
 
     <div id="auth-card" class="card">
         <h1>ATTENDO</h1>
-        <p class="sub-header">System Access</p>
+        <p class="sub-header" id="auth-sub">System Access</p>
         <div id="login-box">
             <input type="text" id="l-user" placeholder="Username">
             <input type="password" id="l-pass" placeholder="Password">
@@ -35,8 +35,8 @@
 
     <div id="main-ui" class="hidden" style="width: 100%; max-width: 480px;">
         <div id="ai-god-panel" class="card hidden" style="border: 2px solid var(--primary); margin-bottom: 20px; padding: 20px; background: rgba(99, 102, 241, 0.05);">
-            <h3 style="margin:0 0 10px 0; color: var(--primary); font-size: 0.8rem; letter-spacing: 1px;">✨ YUVAN'S AI COMMANDER</h3>
-            <input type="text" id="ai-cmd" placeholder="e.g. Change theme to neon green">
+            <h3 style="margin:0 0 10px 0; color: var(--primary); font-size: 0.8rem;">✨ YUVAN'S AI COMMANDER</h3>
+            <input type="text" id="ai-cmd" placeholder="e.g. Change theme to lime">
             <div style="display:flex; gap:10px;">
                 <button onclick="executeAI()" style="flex:2; font-size: 0.8rem;">Execute</button>
                 <button onclick="copySync()" style="flex:1; background:#24292f; font-size: 0.8rem;">Sync</button>
@@ -45,27 +45,44 @@
 
         <div class="card" style="padding: 25px;">
             <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                <button onclick="switchTab('att')" style="flex:1; margin:0;">Attendance</button>
-                <button onclick="switchTab('ros')" style="flex:1; margin:0; background:#334155;">Roster</button>
+                <button id="btn-att" onclick="switchTab('att')" style="flex:1; margin:0;">Attendance</button>
+                <button id="btn-ros" onclick="switchTab('ros')" style="flex:1; margin:0; background:#334155;">Roster</button>
             </div>
+
             <div id="att-view">
                 <input type="date" id="att-date">
                 <div style="display:flex; gap:10px;">
-                    <select id="fc" onchange="renderAttendance()"><option value="">Class</option><option>Class 11</option><option>Class 12</option></select>
+                    <select id="fc" onchange="renderAttendance()">
+                        <option value="">Class</option>
+                        <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                        <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                    </select>
                     <select id="fs" onchange="renderAttendance()"><option value="">Sec A</option><option>Sec B</option></select>
                 </div>
                 <div id="att-list" style="margin-top:20px;"></div>
             </div>
+
             <div id="ros-view" class="hidden">
-                <input type="text" id="rn" placeholder="Name"><input type="number" id="rr" placeholder="Roll">
-                <button onclick="addRoster()">Manual Add</button>
+                <input type="text" id="rn" placeholder="Student Name">
+                <input type="number" id="rr" placeholder="Roll No">
+                <select id="rc">
+                    <option value="">Select Class</option>
+                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                </select>
+                <select id="rs">
+                    <option value="">Select Section</option>
+                    <option>Sec A</option><option>Sec B</option>
+                </select>
+                <button onclick="addRoster()" style="margin-top: 10px;">Manual Add</button>
             </div>
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout System</button>
+            
+            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbxjRKd3GtvmEqLp_3JeAswxPKhreLGZOjlHPwDB0rS7lXrut1awlZlFskMhEIgh31Gn/exec";
+        const API = "https://script.google.com/macros/s/AKfycbzx1lrIOYmwVnnYkJgcD7bSw_49ocCg6VXfR57fC9ZIPrxypu9XfSdzmfLKRsZNcrUYfA/exec";
         let rosterData = [];
 
         function toast(msg, color = "var(--success)") {
@@ -87,7 +104,6 @@
             if(user) {
                 document.getElementById('auth-card').classList.add('hidden');
                 document.getElementById('main-ui').classList.remove('hidden');
-                // GOD MODE LOCK
                 if(user.toLowerCase() === 'yuvan' || user === 'yuvansood1234@gmail.com') {
                     document.getElementById('ai-god-panel').classList.remove('hidden');
                 }
@@ -99,8 +115,6 @@
         async function executeAI() {
             const cmd = document.getElementById('ai-cmd').value;
             if(!cmd) return;
-
-            // CLIENT-SIDE AI: THEME SWITCHING
             if(cmd.toLowerCase().includes("change theme to")) {
                 const color = cmd.toLowerCase().split("to ")[1];
                 document.documentElement.style.setProperty('--primary', color);
@@ -108,8 +122,6 @@
                 document.getElementById('ai-cmd').value = "";
                 return;
             }
-
-            // SERVER-SIDE AI: DATABASE
             toast("AI Processing...", "var(--primary)");
             const res = await fetch(API, { method:"POST", body: JSON.stringify({action:"aiCommand", command:cmd}) });
             toast(await res.text());
@@ -148,9 +160,20 @@
             document.getElementById(`ctrl-${r}`).innerHTML = "✓";
         }
 
+        async function addRoster() {
+            const nameEl = document.getElementById('rn'), rollEl = document.getElementById('rr');
+            const data = { action:"addToRoster", name: nameEl.value, roll: rollEl.value, selectedClass: document.getElementById('rc').value, section: document.getElementById('rs').value };
+            if(!data.name || !data.roll || !data.selectedClass || !data.section) return toast("All fields required", "var(--danger)");
+            await fetch(API, { method:"POST", mode:"no-cors", body: JSON.stringify(data) });
+            toast("✅ Student Added!");
+            nameEl.value = ""; rollEl.value = ""; fetchRoster();
+        }
+
         function switchTab(t) {
             document.getElementById('att-view').classList.toggle('hidden', t!=='att');
             document.getElementById('ros-view').classList.toggle('hidden', t!=='ros');
+            document.getElementById('btn-att').classList.toggle('active', t==='att');
+            document.getElementById('btn-ros').classList.toggle('active', t==='ros');
         }
 
         function logout() { sessionStorage.removeItem('att_session'); location.reload(); }
