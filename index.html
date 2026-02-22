@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yuvan | Attendo</title>
+    <title>Yuvan | Attendo Pro</title>
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --input-bg: #111827; --text: #ffffff; --success: #22c55e; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; min-height: 100vh; margin: 0; align-items: center; justify-content: center; }
         .card { background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 450px; text-align: center; margin-bottom: 20px; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; box-sizing: border-box; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #toast { visibility: hidden; min-width: 200px; background: var(--success); color: white; text-align: center; border-radius: 10px; padding: 15px; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; font-weight: bold; }
-        #toast.show { visibility: visible; }
+        button:active { transform: scale(0.98); }
+        #toast { visibility: hidden; min-width: 250px; background: var(--success); color: white; text-align: center; border-radius: 10px; padding: 15px; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; font-weight: bold; }
+        #toast.show { visibility: visible; animation: slideUp 0.3s; }
         .hidden { display: none; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 5px; border-left: 3px solid var(--primary); }
+        @keyframes slideUp { from{bottom: 0; opacity: 0;} to{bottom: 30px; opacity: 1;} }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 8px; border-left: 4px solid var(--primary); }
     </style>
 </head>
 <body onload="initApp()">
@@ -21,16 +23,17 @@
 
     <div id="auth-card" class="card">
         <h1>ATTENDO</h1>
-        <input type="text" id="l-email" placeholder="E-mail">
-        <input type="text" id="l-name" placeholder="Name">
+        <p style="opacity:0.6">Enter Email, Name, and Password</p>
+        <input type="text" id="l-email" placeholder="Email Address">
+        <input type="text" id="l-name" placeholder="Full Name">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">Login</button>
     </div>
 
     <div id="main-ui" class="hidden" style="width: 100%; max-width: 450px;">
         <div id="ai-panel" class="card hidden" style="border: 2px solid var(--primary);">
-            <h3 style="color:var(--primary); margin:0;">AI CENTRE</h3>
-            <input type="text" id="ai-cmd" placeholder="Ask AI...">
+            <h3 style="color:var(--primary); margin:0 0 10px 0;">AI CENTRE</h3>
+            <input type="text" id="ai-cmd" placeholder="Ask AI (e.g. Add student...)">
             <div style="display:flex; gap:10px;">
                 <button onclick="executeAI()" style="flex:2">Execute</button>
                 <button onclick="pushUpdate()" style="flex:1; background:#334155">Sync</button>
@@ -39,35 +42,42 @@
 
         <div class="card">
             <div style="display:flex; gap:10px; margin-bottom: 15px;">
-                <button onclick="switchTab('att')">Attendance</button>
-                <button onclick="switchTab('ros')" style="background:#334155">Roster</button>
+                <button onclick="switchTab('att')" id="btn-att">Attendance</button>
+                <button onclick="switchTab('ros')" id="btn-ros" style="background:#334155">Roster</button>
             </div>
             <div id="att-view">
                 <input type="date" id="att-date">
-                <select id="fc" onchange="renderAttendance()"><option value="">Class</option><option>Class 6</option><option>Class 11</option></select>
-                <select id="fs" onchange="renderAttendance()"><option value="">Section</option><option>Sec A</option><option>Sec B</option></select>
+                <select id="fc" onchange="renderAttendance()"><option value="">Select Class</option><option>Class 6</option><option>Class 11</option></select>
+                <select id="fs" onchange="renderAttendance()"><option value="">Select Section</option><option>Sec A</option><option>Sec B</option></select>
                 <div id="att-list"></div>
             </div>
-            <div id="ros-view" class="hidden"><p style="opacity:0.5">Admin Roster View</p></div>
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout</button>
+            <div id="ros-view" class="hidden"><p style="opacity:0.5">Roster is managed via AI Centre</p></div>
+            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout System</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbzM9hKC48kp1gWvzYtnbzN_-bt7dYjpLI70Be2L20s81gau30ea7NBE8jRLYhq8WNAeSw/exec";
+        const API = "https://script.google.com/macros/s/AKfycbxKNbOZ06SzScUl1S8kqkDVAcasTZmuyZUSdAHfSNC8t9f36mSU-an0EHS3T7TNdrga/exec";
         const ADMIN_EMAIL = "yuvansood1234@gmail.com";
         let rosterData = [];
 
-        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.className="show"; setTimeout(()=>t.className="", 2500); }
+        function toast(m, isErr=false) { 
+            const t=document.getElementById("toast"); 
+            t.innerText=m; 
+            t.style.background = isErr ? "#ef4444" : "#22c55e";
+            t.className="show"; 
+            setTimeout(()=>t.className="", 3000); 
+        }
 
         async function login() {
-            const e=document.getElementById('l-email').value, n=document.getElementById('l-name').value, p=document.getElementById('l-pass').value;
-            toast("Checking...");
+            const e=document.getElementById('l-email').value.trim(), n=document.getElementById('l-name').value.trim(), p=document.getElementById('l-pass').value.trim();
+            if(!e || !n || !p) return toast("Fill all fields", true);
+            toast("Verifying...");
             const res = await fetch(`${API}?action=login&email=${encodeURIComponent(e)}&name=${encodeURIComponent(n)}&pass=${encodeURIComponent(p)}`);
             if((await res.text()).trim() === "valid") { 
-                sessionStorage.setItem('att_email', e.toLowerCase().trim()); 
+                sessionStorage.setItem('att_email', e.toLowerCase()); 
                 location.reload(); 
-            } else toast("Invalid info");
+            } else toast("Invalid Credentials", true);
         }
 
         function initApp() {
@@ -84,16 +94,19 @@
         async function executeAI() {
             const cmd = document.getElementById('ai-cmd').value;
             if(!cmd) return;
-            toast("Sending...");
+            toast("AI is thinking...");
             const res = await fetch(API, { method: "POST", body: JSON.stringify({ action: "aiCommand", command: cmd, userEmail: sessionStorage.getItem('att_email') }) });
-            toast(await res.text());
+            const msg = await res.text();
+            toast(msg, msg.includes("Error"));
+            document.getElementById('ai-cmd').value = "";
             fetchRoster();
         }
 
         async function pushUpdate() {
-            toast("Syncing...");
+            toast("Updating GitHub...");
             const res = await fetch(API, { method: "POST", body: JSON.stringify({ action: "pushToGitHub", htmlContent: document.documentElement.outerHTML, userEmail: sessionStorage.getItem('att_email') }) });
-            toast(await res.text());
+            const msg = await res.text();
+            toast(msg, msg.includes("Error"));
         }
 
         async function fetchRoster() {
@@ -104,16 +117,18 @@
 
         function renderAttendance() {
             const c=document.getElementById('fc').value, s=document.getElementById('fs').value;
+            const list = document.getElementById('att-list');
+            if(!c || !s) { list.innerHTML = "Select filter to see students"; return; }
             const filtered = rosterData.filter(x => x.class == c && x.section == s);
-            document.getElementById('att-list').innerHTML = filtered.map(x => `
-                <div class="student-item"><span>${x.name}</span><button onclick="mark('${x.name}','${x.roll}')" style="width:50px; margin:0; padding:5px;">P</button></div>
-            `).join('') || "No records.";
+            list.innerHTML = filtered.map(x => `
+                <div class="student-item"><span>${x.name}</span><button onclick="mark('${x.name}','${x.roll}')" style="width:60px; margin:0;">P</button></div>
+            `).join('') || "No records found.";
         }
 
         async function mark(n, r) {
             toast("Marking...");
             await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "markAttendance", name: n, roll: r, class: document.getElementById('fc').value, section: document.getElementById('fs').value }) });
-            toast("Done!");
+            toast("Marked " + n);
         }
 
         function switchTab(t) {
