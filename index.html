@@ -7,105 +7,76 @@
     <style>
         :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --input-bg: #111827; --text: #ffffff; --success: #22c55e; --danger: #ef4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: var(--card); padding: 35px; border-radius: 20px; width: 95%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; box-sizing: border-box; }
-        h1 { font-size: 2.2rem; margin: 0 0 10px 0; letter-spacing: 2px; }
-        .sub-header { opacity: 0.6; margin-bottom: 25px; font-size: 0.85rem; }
-        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; font-size: 0.95rem; box-sizing: border-box; }
+        .card { background: var(--card); padding: 30px; border-radius: 20px; width: 95%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; margin-bottom: 20px; box-sizing: border-box; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: var(--input-bg); color: white; box-sizing: border-box; }
         button { background: var(--primary); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #toast { visibility: hidden; min-width: 250px; background-color: var(--success); color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; }
-        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        #toast { visibility: hidden; min-width: 200px; background: var(--success); color: white; text-align: center; border-radius: 10px; padding: 15px; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; font-weight: bold; }
+        #toast.show { visibility: visible; animation: fade 0.5s; }
         .hidden { display: none; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 5px; border-left: 3px solid var(--primary); }
     </style>
 </head>
 <body onload="initApp()">
     <div id="toast"></div>
 
     <div id="auth-card" class="card">
-        <h1>ATTENDANCE</h1>
-        <p class="sub-header">A simple Attendance page built by Yuvan</p>
-        <input type="text" id="l-user" placeholder="Username">
+        <h1>ATTENDO</h1>
+        <p style="opacity:0.6">A simple attenadance system made by Yuvan</p>
+        <input type="text" id="l-user" placeholder="Enter Email">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">Login</button>
     </div>
 
-    <div id="main-ui" class="hidden" style="width: 100%; max-width: 480px;">
-        <div id="ai-god-panel" class="card hidden" style="border: 2px solid var(--primary); margin-bottom: 20px; padding: 20px; background: rgba(99, 102, 241, 0.05);">
-            <h3 style="margin:0 0 10px 0; color: var(--primary); font-size: 0.8rem; letter-spacing: 1px;">AI CENTRE</h3>
-            <input type="text" id="ai-cmd" placeholder="Ask Gemini: Add student Rahul roll 10...">
-            <button onclick="executeAI()" style="margin-top: 10px; font-size: 0.8rem;">Execute with Gemini</button>
+    <div id="main-ui" class="hidden" style="width: 100%; max-width: 450px;">
+        <div id="ai-panel" class="card hidden" style="border: 2px solid var(--primary);">
+            <h3 style="margin:0 0 10px 0; color:var(--primary)">AI CENTRE (ADMIN)</h3>
+            <input type="text" id="ai-cmd" placeholder="Ask Gemini...">
+            <div style="display:flex; gap:10px;">
+                <button onclick="executeAI()" style="flex:2">Execute</button>
+                <button onclick="pushUpdate()" style="flex:1; background:#334155">Update Web</button>
+            </div>
         </div>
 
-        <div class="card" style="padding: 25px;">
-            <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                <button onclick="switchTab('att')" style="flex:1; margin:0;">Attendance</button>
-                <button onclick="switchTab('ros')" style="flex:1; margin:0; background:#334155;">Roster</button>
+        <div class="card">
+            <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                <button onclick="switchTab('att')" id="btn-att">Attendance</button>
+                <button onclick="switchTab('ros')" id="btn-ros" style="background:#334155">Roster</button>
             </div>
-            
             <div id="att-view">
                 <input type="date" id="att-date">
-                <div style="display:flex; gap:10px;">
-                    <select id="fc" onchange="renderAttendance()">
-                        <option value="">Class</option>
-                        <option>Class 6</option><option>Class 7</option>
-                        <option>Class 8</option><option>Class 9</option>
-                        <option>Class 10</option><option>Class 11</option>
-                    </select>
-                    <select id="fs" onchange="renderAttendance()">
-                        <option value="">Section</option>
-                        <option>Sec A</option>
-                        <option>Sec B</option>
-                    </select>
-                </div>
-                <div id="att-list" style="margin-top:15px;"></div>
+                <select id="fc" onchange="renderAttendance()"><option value="">Class</option><option>Class 6</option><option>Class 11</option></select>
+                <select id="fs" onchange="renderAttendance()"><option value="">Section</option><option>Sec A</option><option>Sec B</option></select>
+                <div id="att-list"></div>
             </div>
-
             <div id="ros-view" class="hidden">
-                <input type="text" id="rn" placeholder="Manual Name">
-                <input type="number" id="rr" placeholder="Manual Roll">
-                <button onclick="addRoster()">Add to Sheet</button>
+                <p>Roster</p>
             </div>
-            
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px; font-size: 0.8rem;">Logout System</button>
+            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycby2oISypvkjjziFrj4c4TfSpMFIGafmBXA9j_69be_SMkW4kG5lecGFy7C3Q8tME7sTHg/exec";
+        const API = "https://script.google.com/macros/s/AKfycbx6Bmw49BsePJMjVIorpeUx2V0EIF9fDRQQXPdqESgrwmou9RFUgcHaHl_pvR5lUdkxvA/exec";
+        const ADMIN_EMAIL = "yuvansood1234@gmail.com";
         let rosterData = [];
 
-        function toast(msg, color = "var(--success)") {
-            const x = document.getElementById("toast");
-            x.innerText = msg; x.style.backgroundColor = color;
-            x.className = "show"; setTimeout(() => { x.className = ""; }, 3000);
-        }
+        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.className="show"; setTimeout(()=>t.className="", 3000); }
 
         async function login() {
-            const u = document.getElementById('l-user').value.trim();
+            const u = document.getElementById('l-user').value.trim().toLowerCase();
             const p = document.getElementById('l-pass').value.trim();
-            try {
-                const res = await fetch(`${API}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
-                const result = await res.text();
-                if(result.trim() === "valid") { 
-                    sessionStorage.setItem('att_session', u); 
-                    location.reload(); 
-                } else {
-                    toast("Login Failed", "var(--danger)");
-                }
-            } catch(e) {
-                toast("Connection Error", "var(--danger)");
-            }
+            const res = await fetch(`${API}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
+            if((await res.text()).trim() === "valid") { sessionStorage.setItem('att_email', u); location.reload(); }
+            else toast("Login Failed");
         }
 
         function initApp() {
-            const user = sessionStorage.getItem('att_session');
+            const user = sessionStorage.getItem('att_email');
             if(user) {
                 document.getElementById('auth-card').classList.add('hidden');
                 document.getElementById('main-ui').classList.remove('hidden');
-                if(user.toLowerCase() === 'yuvan' || user === 'yuvansood1234@gmail.com') {
-                    document.getElementById('ai-god-panel').classList.remove('hidden');
+                if(user === ADMIN_EMAIL) {
+                    document.getElementById('ai-panel').classList.remove('hidden');
                 }
                 fetchRoster();
             }
@@ -114,68 +85,76 @@
 
         async function executeAI() {
             const cmdInput = document.getElementById('ai-cmd');
-            const cmd = cmdInput.value.trim();
+            const cmd = cmdInput.value.trim().toLowerCase();
             if(!cmd) return;
-            toast("Gemini is thinking...", "var(--primary)");
-            try {
-                const res = await fetch(API, { method: "POST", body: JSON.stringify({ action: "aiCommand", command: cmd }) });
-                const feedback = await res.text();
-                toast(feedback);
-                cmdInput.value = "";
-                fetchRoster();
-            } catch(e) {
-                toast("AI Error", "var(--danger)");
+
+            if(cmd.includes("theme")) {
+                const colors = {"red":"#ef4444", "lime":"#84cc16", "blue":"#6366f1"};
+                const target = Object.keys(colors).find(c => cmd.includes(c));
+                if(target) { document.documentElement.style.setProperty('--primary', colors[target]); toast("Local Preview Active!"); }
             }
+
+            toast("Gemini is processing...");
+            const res = await fetch(API, { 
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "aiCommand", 
+                    command: cmd, 
+                    userEmail: sessionStorage.getItem('att_email') 
+                }) 
+            });
+            toast(await res.text());
+            cmdInput.value = "";
+            fetchRoster();
+        }
+
+        async function pushUpdate() {
+            toast("Sending update to GitHub...");
+            const html = document.documentElement.outerHTML;
+            const res = await fetch(API, { 
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "pushToGitHub", 
+                    htmlContent: html,
+                    userEmail: sessionStorage.getItem('att_email') 
+                }) 
+            });
+            toast(await res.text());
         }
 
         async function fetchRoster() {
-            try {
-                const res = await fetch(`${API}?get=roster`);
-                rosterData = await res.json();
-                renderAttendance();
-            } catch(e) {
-                console.log("Error fetching roster");
-            }
+            const res = await fetch(`${API}?get=roster`);
+            rosterData = await res.json();
+            renderAttendance();
         }
 
         function renderAttendance() {
-            const c = document.getElementById('fc').value;
-            const s = document.getElementById('fs').value;
-            const listDiv = document.getElementById('att-list');
-            if(!c || !s) {
-                listDiv.innerHTML = "Select Class & Section";
-                return;
-            }
+            const c = document.getElementById('fc').value, s = document.getElementById('fs').value;
+            const list = document.getElementById('att-list');
+            if(!c || !s) { list.innerHTML = "Select filter"; return; }
             const filtered = rosterData.filter(x => x.class === c && x.section === s);
-            listDiv.innerHTML = filtered.map(x => `
+            list.innerHTML = filtered.map(x => `
                 <div class="student-item">
-                    <span>${x.name} (Roll: ${x.roll})</span>
-                    <div id="ctrl-${x.roll}"><button onclick="mark('${x.name}','${x.roll}')" style="width:50px; background:var(--success); margin:0;">P</button></div>
+                    <span>${x.name}</span>
+                    <button onclick="mark('${x.name}','${x.roll}')" style="width:50px; margin:0; padding:5px;">P</button>
                 </div>
-            `).join('') || "No students found.";
+            `).join('') || "Empty Roster.";
         }
 
         async function mark(n, r) {
-            const data = { 
-                action: "markAttendance", 
-                date: document.getElementById('att-date').value, 
-                name: n, 
-                roll: r, 
-                status: 'P', 
-                selectedClass: document.getElementById('fc').value, 
-                section: document.getElementById('fs').value 
-            };
+            const data = { action: "markAttendance", date: document.getElementById('att-date').value, name: n, roll: r, status: 'P', selectedClass: document.getElementById('fc').value, section: document.getElementById('fs').value };
             await fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify(data) });
-            toast(`Marked ${n} Present`);
-            document.getElementById(`ctrl-${r}`).innerHTML = "Confirmed";
+            toast("Marked!");
         }
 
         function switchTab(t) {
             document.getElementById('att-view').classList.toggle('hidden', t !== 'att');
             document.getElementById('ros-view').classList.toggle('hidden', t !== 'ros');
+            document.getElementById('btn-att').style.background = (t==='att') ? 'var(--primary)' : '#334155';
+            document.getElementById('btn-ros').style.background = (t==='ros') ? 'var(--primary)' : '#334155';
         }
 
-        function logout() { sessionStorage.removeItem('att_session'); location.reload(); }
+        function logout() { sessionStorage.removeItem('att_email'); location.reload(); }
     </script>
 </body>
 </html>
