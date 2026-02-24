@@ -3,62 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yuvan | Attendo Management</title>
+    <title>Attendo | Pro</title>
     <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --text: #ffffff; --success: #22c55e; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: var(--card); padding: 25px; border-radius: 15px; width: 100%; max-width: 450px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
-        button { background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --success: #10b981; --danger: #f43f5e; --text-dim: #94a3b8; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; box-sizing: border-box; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #111827; color: white; font-size: 15px; outline: none; box-sizing: border-box; }
+        button { background: var(--primary); font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
         button:active { transform: scale(0.98); }
+        .item { padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .hidden { display: none; }
-        #toast { position: fixed; bottom: 20px; background: var(--primary); padding: 12px 25px; border-radius: 10px; visibility: hidden; z-index: 1000; }
+        .link { color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 500; }
+        #toast { position: fixed; bottom: 30px; background: #312e81; color: white; padding: 12px 24px; border-radius: 12px; visibility: hidden; z-index: 1000; font-weight: 500; }
         #toast.show { visibility: visible; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 8px; }
     </style>
 </head>
 <body onload="initApp()">
     <div id="toast"></div>
 
-    <div id="auth-card" class="card">
-        <h1>ATTENDO</h1>
-        <input type="text" id="l-email" placeholder="Email">
-        <input type="password" id="l-pass" placeholder="Password">
-        <button onclick="login()">Login</button>
+    <div id="auth-card" class="card" style="text-align:center;">
+        <h1 style="color:var(--primary); margin:0 0 20px 0;">ATTENDO</h1>
+        <div id="login-form">
+            <input type="text" id="l-email" placeholder="Email Address">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button onclick="login()">Sign In</button>
+            <div style="margin-top:15px; opacity:0.8;">
+                <span class="link" onclick="toggleAuth('signup')">Create Account</span> • 
+                <span class="link" onclick="toggleAuth('forgot')">Forgot?</span>
+            </div>
+        </div>
+        <div id="signup-form" class="hidden">
+            <input type="text" id="s-email" placeholder="Email Address">
+            <input type="text" id="s-name" placeholder="Full Name">
+            <input type="password" id="s-pass" placeholder="Create Password">
+            <input type="text" id="s-recovery" placeholder="4-Digit PIN (for recovery)">
+            <button onclick="signup()">Register</button>
+            <span class="link" onclick="toggleAuth('login')">← Back to Login</span>
+        </div>
+        <div id="forgot-form" class="hidden">
+            <input type="text" id="f-email" placeholder="Registered Email">
+            <input type="text" id="f-recovery" placeholder="Your 4-Digit PIN">
+            <input type="password" id="f-newpass" placeholder="New Password">
+            <button onclick="resetPass()">Reset Password</button>
+            <span class="link" onclick="toggleAuth('login')">← Back to Login</span>
+        </div>
     </div>
 
-    <div id="main-ui" class="hidden" style="width: 100%; max-width: 450px;">
+    <div id="main-ui" class="hidden" style="width: 100%; max-width: 400px;">
         
-        <div id="admin-panel" class="card hidden" style="border: 2px solid var(--primary);">
-            <h3 style="color:var(--primary)">Access Requests</h3>
-            <div id="request-list">Loading requests...</div>
+        <div id="admin-panel" class="card hidden" style="border-left: 4px solid var(--primary);">
+            <h3 style="margin-top:0;">Admin Console</h3>
+            <div id="request-list" style="font-size:14px;">No requests.</div>
+            <hr style="opacity:0.05; margin:15px 0;">
+            <h4 style="font-size:13px; color:var(--text-dim); text-transform:uppercase;">Quick Roster Add</h4>
+            <input type="text" id="st-name" placeholder="Student Name">
+            <input type="text" id="st-roll" placeholder="Roll No">
+            <div style="display:flex; gap:10px;">
+                <select id="st-class"><option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option></select>
+                <select id="st-sec"><option>Sec A</option><option>Sec B</option></select>
+            </div>
+            <button onclick="addStudent()" style="background:var(--success)">Add Student</button>
         </div>
 
         <div class="card">
-            <h2 id="welcome-msg">Welcome</h2>
-            <div id="status-bar" style="margin-bottom: 15px; font-size: 0.9em; opacity: 0.8;">Checking permissions...</div>
-            
-            <button id="req-btn" class="hidden" onclick="sendAccessRequest()">Request Teacher Access</button>
+            <h2 id="welcome-msg" style="margin:0;">Dashboard</h2>
+            <div id="status-bar" style="font-size:13px; color:var(--text-dim); margin-bottom:20px;"></div>
+
+            <div id="request-section" class="hidden">
+                <p style="font-size:14px;">Request classroom access:</p>
+                <select id="req-class"><option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option></select>
+                <select id="req-sec"><option>Sec A</option><option>Sec B</option></select>
+                <button onclick="sendRequest()">Send Request</button>
+            </div>
 
             <div id="teacher-tools" class="hidden">
-                <select id="fc" onchange="renderAttendance()"><option value="">Class</option><option>Class 6</option><option>Class 11</option></select>
-                <select id="fs" onchange="renderAttendance()"><option value="">Section</option><option>Sec A</option><option>Sec B</option></select>
+                <p style="font-size:14px;">Assigned: <b id="assigned-room" style="color:var(--primary)"></b></p>
+                <button onclick="downloadCSV()" style="background:#334155; font-size:13px;">Download CSV Report</button>
                 <div id="att-list"></div>
             </div>
 
-            <button onclick="logout()" style="background:var(--danger); margin-top:20px;">Logout System</button>
+            <button onclick="logout()" style="background:transparent; border: 1px solid var(--danger); color:var(--danger); margin-top:20px;">Logout</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbz6-OT_qFolAKl3GksH_tpQi3aThptH-5hR-mmGasE1BCpoFzyajjzEfML1jeajx0UPYw/exec";
+        const API = "https://script.google.com/macros/s/AKfycbyCJMVcjpt7cWfdndlGIN6u3nUYxKaxAmmpko37xZwfrdQKGInMu0EvFTyVwFar5uUmIQ/exec";
         const ADMIN = "yuvansood1234@gmail.com";
-        let rosterData = [];
+
+        function toggleAuth(m) {
+            document.getElementById('login-form').classList.toggle('hidden', m !== 'login');
+            document.getElementById('signup-form').classList.toggle('hidden', m !== 'signup');
+            document.getElementById('forgot-form').classList.toggle('hidden', m !== 'forgot');
+        }
 
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.className="show"; setTimeout(()=>t.className="", 3000); }
 
         async function login() {
             const e=document.getElementById('l-email').value.trim(), p=document.getElementById('l-pass').value.trim();
+            toast("Signing in...");
             const res = await fetch(`${API}?action=login&email=${encodeURIComponent(e)}&pass=${encodeURIComponent(p)}`);
             if((await res.text()).trim()==="valid") { sessionStorage.setItem('u_email', e.toLowerCase()); location.reload(); }
             else toast("Login Failed");
@@ -67,86 +109,87 @@
         async function initApp() {
             const user = sessionStorage.getItem('u_email');
             if(!user) return;
-
             document.getElementById('auth-card').classList.add('hidden');
             document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('welcome-msg').innerText = "Hello, " + user.split('@')[0];
 
-            // 1. Check if Teacher
             const statusRes = await fetch(`${API}?action=checkStatus&email=${user}`);
-            const status = await statusRes.text();
+            const status = await statusRes.json();
 
-            if(status === "teacher") {
-                document.getElementById('status-bar').innerText = "Status: Authorized Teacher";
-                document.getElementById('teacher-tools').classList.remove('hidden');
-                fetchRoster();
-            } else {
-                document.getElementById('status-bar').innerText = "Status: Restricted View";
-                document.getElementById('req-btn').classList.remove('hidden');
-            }
-
-            // 2. Load Admin Panel if applicable
             if(user === ADMIN) {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 loadRequests();
             }
+
+            if(status.role === "teacher") {
+                document.getElementById('status-bar').innerText = "Authorized Teacher";
+                document.getElementById('assigned-room').innerText = status.class + " " + status.section;
+                document.getElementById('teacher-tools').classList.remove('hidden');
+                fetchRoster(status.class, status.section);
+            } else {
+                document.getElementById('status-bar').innerText = "Restricted User";
+                document.getElementById('request-section').classList.remove('hidden');
+            }
         }
 
         async function loadRequests() {
-            const res = await fetch(`${API}?action=getRequests`);
+            const res = await fetch(`${API}?action=getRequests&email=${ADMIN}`);
             const reqs = await res.json();
             document.getElementById('request-list').innerHTML = reqs.map(r => `
-                <div class="student-item">
-                    <span>${r[0]}</span>
-                    <button onclick="approveTeacher('${r[0]}')" style="width:70px; background:var(--success); font-size:0.8em; margin:0;">Allow</button>
+                <div class="item">
+                    <b>${r[1]}</b> (${r[0]})<br>
+                    <small>Requests ${r[2]} ${r[3]}</small>
+                    <div style="display:flex; gap:5px; margin-top:8px;">
+                        <button onclick="adminAction('approveTeacher','${r[0]}','${r[2]}','${r[3]}')" style="background:var(--success); font-size:12px; height:30px;">Allow</button>
+                        <button onclick="adminAction('denyRequest','${r[0]}')" style="background:var(--danger); font-size:12px; height:30px;">Deny</button>
+                    </div>
                 </div>
             `).join('') || "No pending requests.";
         }
 
-        async function approveTeacher(email) {
-            toast("Granting access...");
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "approveTeacher", teacherEmail: email, adminEmail: ADMIN }) });
+        async function adminAction(act, email, cls, sec) {
+            toast("Updating...");
+            const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:act, teacherEmail:email, targetClass:cls, targetSec:sec, adminEmail:ADMIN })});
+            toast(await res.text());
             loadRequests();
-            toast("Teacher approved!");
         }
 
-        async function sendAccessRequest() {
-            const user = sessionStorage.getItem('u_email');
-            toast("Sending request...");
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "requestAccess", email: user, name: user.split('@')[0] }) });
+        async function addStudent() {
+            const data = { action:"addStudent", adminEmail:ADMIN, name:document.getElementById('st-name').value, roll:document.getElementById('st-roll').value, class:document.getElementById('st-class').value, section:document.getElementById('st-sec').value };
+            toast("Adding student...");
+            const res = await fetch(API, { method:"POST", body:JSON.stringify(data)});
+            toast(await res.text());
+        }
+
+        async function fetchRoster(c, s) {
+            const res = await fetch(`${API}?get=roster`);
+            const all = await res.json();
+            const filtered = all.filter(x => x.class == c && x.section == s);
+            document.getElementById('att-list').innerHTML = filtered.map(x => `
+                <div class="item" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>${x.name}</span>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="mark('${x.name}','${x.roll}','Present','${c}','${s}')" style="background:var(--success); width:40px; height:40px; padding:0;">P</button>
+                        <button onclick="mark('${x.name}','${x.roll}','Absent','${c}','${s}')" style="background:var(--danger); width:40px; height:40px; padding:0;">A</button>
+                    </div>
+                </div>
+            `).join('') || "Empty section.";
+        }
+
+        async function mark(n, r, s, cl, se) {
+            toast("Saving...");
+            await fetch(API, { method: "POST", body: JSON.stringify({ action: "markAttendance", name: n, roll: r, status: s, class: cl, section: se, userEmail: sessionStorage.getItem('u_email') })});
+            toast("Saved");
+        }
+
+        async function sendRequest() {
+            toast("Sending...");
+            const u = sessionStorage.getItem('u_email');
+            await fetch(API, { method: "POST", body: JSON.stringify({ action: "requestAccess", email: u, name: u.split('@')[0], class: document.getElementById('req-class').value, section: document.getElementById('req-sec').value }) });
             toast("Request Sent!");
         }
 
-        async function fetchRoster() {
-            const res = await fetch(`${API}?get=roster`);
-            rosterData = await res.json();
-        }
-
-        function renderAttendance() {
-            const c=document.getElementById('fc').value, s=document.getElementById('fs').value;
-            const filtered = rosterData.filter(x => x.class == c && x.section == s);
-            document.getElementById('att-list').innerHTML = filtered.map(x => `
-                <div class="student-item">
-                    <span>${x.name}</span>
-                    <div style="display:flex; gap:5px;">
-                        <button onclick="mark('${x.name}','${x.roll}','Present')" style="background:var(--success); width:40px; margin:0; padding:5px;">P</button>
-                        <button onclick="mark('${x.name}','${x.roll}','Absent')" style="background:var(--danger); width:40px; margin:0; padding:5px;">A</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function mark(n, r, status) {
-            toast("Marking " + status + "...");
-            const user = sessionStorage.getItem('u_email');
-            await fetch(API, { method: "POST", body: JSON.stringify({ 
-                action: "markAttendance", name: n, roll: r, status: status, 
-                class: document.getElementById('fc').value, section: document.getElementById('fs').value, 
-                userEmail: user 
-            })});
-            toast("Done!");
-        }
-
+        function downloadCSV() { window.location.href = `${API}?action=downloadCSV&class=${encodeURIComponent(sessionStorage.getItem('assigned_class'))}`; }
         function logout() { sessionStorage.clear(); location.reload(); }
     </script>
 </body>
