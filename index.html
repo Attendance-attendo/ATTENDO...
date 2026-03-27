@@ -1,156 +1,116 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendo Pro | Attendance System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yuvanb</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --card: rgba(30, 41, 59, 0.7);
-            --success: #10b981;
-            --danger: #f43f5e;
-            --text: #f8fafc;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        :root { --primary: #6366f1; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --success: #10b981; --danger: #f43f5e; --text: #f8fafc; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a); 
+            color: var(--text); 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+        /* Responsive Card Logic */
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(12px); 
+            padding: 2rem; 
+            border-radius: 28px; 
+            width: 100%; 
+            max-width: 420px; /* Default for Laptop */
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            margin-bottom: 24px; 
+            box-sizing: border-box; 
+            transition: max-width 0.3s ease;
         }
 
-        .card {
-            background: var(--card);
-            backdrop-filter: blur(12px);
-            padding: 2rem;
-            border-radius: 28px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 24px;
-            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Desktop Optimization: Wider Roster */
+        @media (min-width: 1024px) {
+            .card { max-width: 800px; }
+            #att-list { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 15px; 
+            }
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Mobile Optimization: Full Width */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .card { 
+                padding: 1.5rem; 
+                border-radius: 20px; 
+                margin-bottom: 15px;
+            }
+            h1 { font-size: 1.8rem; }
+            button { padding: 16px; } /* Bigger tap targets */
         }
 
-        h1 { font-size: 2.2rem; font-weight: 800; text-align: center; color: var(--primary); letter-spacing: -1.5px; margin-bottom: 2rem; }
-
-        input, select, button {
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.8);
-            color: white;
-            font-size: 15px;
-            transition: var(--transition);
-        }
-
+        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.8); color: white; font-size: 16px; }
         button { background: var(--primary); border: none; font-weight: 700; cursor: pointer; }
-        button:hover { filter: brightness(1.15); transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
-
         .hidden { display: none; }
-
-        .student-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 18px;
+        
+        .student-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 16px; 
+            background: rgba(255,255,255,0.03); 
+            border-radius: 18px; 
+            border: 1px solid rgba(255,255,255,0.05); 
             margin-top: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .btn-p { background: var(--success); width: 44px; height: 44px; padding: 0; margin: 0; border-radius: 14px; }
-        .btn-a { background: var(--danger); width: 44px; height: 44px; padding: 0; margin: 0; border-radius: 14px; }
+        .btn-p { background: var(--success); width: 50px; height: 50px; margin: 0; border-radius: 14px; }
+        .btn-a { background: var(--danger); width: 50px; height: 50px; margin: 0; border-radius: 14px; }
 
-        #toast {
-            position: fixed;
-            bottom: 30px;
-            background: var(--primary);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 20px;
-            font-weight: 600;
-            visibility: hidden;
-            z-index: 1000;
-        }
-
-        #toast.show { 
-            visibility: visible; 
-            animation: toastPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-        }
-
-        @keyframes toastPop {
-            0% { transform: translateY(50px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-
-        .link { font-size: 0.85rem; color: var(--primary); cursor: pointer; font-weight: 600; display: inline-block; margin-top: 10px;}
+        #toast { position: fixed; top: 20px; background: var(--primary); color: white; padding: 14px 28px; border-radius: 20px; font-weight: 600; visibility: hidden; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #toast.show { visibility: visible; animation: popDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popDown { from { transform: translateY(-100px); } to { transform: translateY(0); } }
     </style>
 </head>
 <body onload="initApp()">
 
-    <div id="toast">Ready</div>
+    <div id="toast">System Ready</div>
 
     <div id="auth-card" class="card">
-        <h1>ATTENDO</h1>
+        <h1 style="text-align:center; color:var(--primary); font-weight:800; margin-top:0;">ATTENDO</h1>
         <div id="login-form">
-            <input type="text" id="l-email" placeholder="Email Address">
+            <input type="text" id="l-email" placeholder="Email">
             <input type="password" id="l-pass" placeholder="Password">
             <button onclick="login()">Sign In</button>
-            <div style="text-align:center;">
-                <span class="link" onclick="toggleAuth('signup')">Create Account</span> • 
-                <span class="link" onclick="toggleAuth('forgot')">Forgot PIN?</span>
-            </div>
+            <p onclick="toggleAuth('signup')" style="text-align:center; cursor:pointer; color:var(--primary); font-size:14px; margin-top:15px;">Create Account</p>
         </div>
-
         <div id="signup-form" class="hidden">
-            <input type="text" id="s-email" placeholder="Email Address">
-            <input type="text" id="s-name" placeholder="Full Name">
+            <input type="text" id="s-email" placeholder="Email">
+            <input type="text" id="s-name" placeholder="Name">
             <input type="password" id="s-pass" placeholder="Password">
             <input type="text" id="s-recovery" placeholder="4-Digit PIN">
             <button onclick="signup()">Register</button>
-            <span class="link" onclick="toggleAuth('login')">Back to Sign In</span>
-        </div>
-
-        <div id="forgot-form" class="hidden">
-            <input type="text" id="f-email" placeholder="Email">
-            <input type="text" id="f-recovery" placeholder="Recovery PIN">
-            <input type="password" id="f-newpass" placeholder="New Password">
-            <button onclick="resetPass()">Update Password</button>
-            <span class="link" onclick="toggleAuth('login')">Back</span>
+            <p onclick="toggleAuth('login')" style="text-align:center; cursor:pointer; font-size:14px;">Back</p>
         </div>
     </div>
 
-    <div id="main-ui" class="hidden" style="width: 100%; max-width: 440px;">
-        <div id="admin-panel" class="card hidden" style="border-left: 5px solid var(--primary);">
-            <h3 style="color: var(--primary); margin:0;">Admin Console</h3>
+    <div id="main-ui" class="hidden" style="width: 100%; max-width: 800px;">
+        <div id="admin-panel" class="card hidden" style="border-left: 5px solid var(--primary); width: 100%; max-width: 100%;">
+            <h3 style="margin:0; color:var(--primary)">Admin Panel</h3>
+            <button onclick="updateWeb()" style="background:#4338ca; margin:15px 0;">Sync GitHub</button>
             <div id="request-list"></div>
-            
-            <hr style="opacity:0.05; margin:20px 0;">
-            <button onclick="updateWebsite()" style="background:#4338ca; margin-bottom: 15px;">Update Website (Sync GitHub)</button>
-            
-            <h3 style="font-size: 1rem;">Add Student</h3>
-            <input type="text" id="st-name" placeholder="Name">
-            <input type="text" id="st-roll" placeholder="Roll">
+            <hr style="opacity:0.1; margin:20px 0;">
+            <h3>Add Student</h3>
+            <input type="text" id="st-name" placeholder="Student Name">
+            <input type="text" id="st-roll" placeholder="Roll No">
             <div style="display:flex; gap:10px;">
                 <select id="st-class">
                     <option>Class 6</option><option>Class 7</option><option>Class 8</option>
@@ -161,18 +121,22 @@
             <button onclick="addStudent()" style="background:var(--success)">Add Student</button>
         </div>
 
-        <div class="card">
+        <div class="card" style="width: 100%; max-width: 100%;">
             <h2 id="welcome-msg" style="margin:0;">Dashboard</h2>
             <div id="request-section" class="hidden">
-                <p style="opacity:0.6; font-size: 0.9rem;">Assign a classroom:</p>
                 <select id="req-class"><option>Class 6</option><option>Class 11</option><option>Class 12</option></select>
                 <select id="req-sec"><option>Sec A</option><option>Sec B</option></select>
                 <button onclick="sendRequest()">Request Access</button>
             </div>
+            
             <div id="teacher-tools" class="hidden">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span>Room: <b id="assigned-room" style="color:var(--primary)"></b></span>
-                    <button onclick="downloadCSV()" style="width:auto; padding:5px 12px; font-size:12px; background:#334155;">CSV Export</button>
+                <p>Room: <b id="assigned-room" style="color:var(--primary)"></b></p>
+                <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                    <select id="period-sel" style="flex:2">
+                        <option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option>
+                        <option>Period 5</option><option>Period 6</option><option>Period 7</option><option>Period 8</option>
+                    </select>
+                    <button onclick="markAllPresent()" style="flex:1; background:var(--success); font-size:12px;">Bulk P</button>
                 </div>
                 <div id="att-list"></div>
             </div>
@@ -181,43 +145,29 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbzvW2IsL91EGwOMuyHkcs__zLVQ1WkZrK4NlsVHLG8iBTdDa8UdxhjvD4N47kf0kYAy4w/exec";
+        const API = "https://script.google.com/macros/s/AKfycbyCJMVcjpt7cWfdndlGIN6u3nUYxKaxAmmpko37xZwfrdQKGInMu0EvFTyVwFar5uUmIQ/exec";
         const ADMIN = "yuvansood1234@gmail.com";
+        let currentRoster = [];
 
         function toast(m) { 
             const t = document.getElementById("toast"); 
-            t.innerText = m; 
-            t.classList.remove('show');
-            void t.offsetWidth;
-            t.classList.add('show'); 
-            setTimeout(() => t.classList.remove('show'), 3000); 
+            t.innerText = m; t.classList.remove('show');
+            void t.offsetWidth; t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2500); 
         }
 
-        function toggleAuth(m) {
-            ['login-form', 'signup-form', 'forgot-form'].forEach(f => document.getElementById(f).classList.add('hidden'));
-            document.getElementById(m + '-form').classList.remove('hidden');
+        function toggleAuth(m) { 
+            document.getElementById('login-form').classList.add('hidden'); 
+            document.getElementById('signup-form').classList.add('hidden'); 
+            document.getElementById(m + '-form').classList.remove('hidden'); 
         }
 
         async function login() {
-            const e=document.getElementById('l-email').value.trim(), p=document.getElementById('l-pass').value.trim();
-            toast("Authenticating...");
+            const e = document.getElementById('l-email').value.trim(), p = document.getElementById('l-pass').value.trim();
+            toast("Syncing...");
             const res = await fetch(`${API}?action=login&email=${encodeURIComponent(e)}&pass=${encodeURIComponent(p)}`);
-            if((await res.text()).trim()==="valid") { sessionStorage.setItem('u_email', e.toLowerCase()); location.reload(); }
+            if((await res.text()).trim() === "valid") { sessionStorage.setItem('u_email', e.toLowerCase()); location.reload(); }
             else toast("Login Failed");
-        }
-
-        async function signup() {
-            const data = { action:"createAccount", email:document.getElementById('s-email').value, name:document.getElementById('s-name').value, pass:document.getElementById('s-pass').value, recovery:document.getElementById('s-recovery').value };
-            const res = await fetch(API, { method:"POST", body:JSON.stringify(data)});
-            toast(await res.text());
-            toggleAuth('login');
-        }
-
-        async function resetPass() {
-            const data = { action:"resetPassword", email:document.getElementById('f-email').value, recovery:document.getElementById('f-recovery').value, newPass:document.getElementById('f-newpass').value };
-            const res = await fetch(API, { method:"POST", body:JSON.stringify(data)});
-            toast(await res.text());
-            toggleAuth('login');
         }
 
         async function initApp() {
@@ -226,84 +176,54 @@
             document.getElementById('auth-card').classList.add('hidden');
             document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('welcome-msg').innerText = "Hi, " + user.split('@')[0];
-
-            const statusRes = await fetch(`${API}?action=checkStatus&email=${user}`);
-            const status = await statusRes.json();
-
-            if(user === ADMIN) {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                loadRequests();
-            }
-
+            const status = await (await fetch(`${API}?action=checkStatus&email=${user}`)).json();
+            if(user === ADMIN) { document.getElementById('admin-panel').classList.remove('hidden'); loadReqs(); }
             if(status.role === "teacher") {
                 document.getElementById('assigned-room').innerText = status.class + " " + status.section;
                 document.getElementById('teacher-tools').classList.remove('hidden');
                 fetchRoster(status.class, status.section);
-            } else {
-                document.getElementById('request-section').classList.remove('hidden');
-            }
+            } else document.getElementById('request-section').classList.remove('hidden');
         }
 
         async function fetchRoster(c, s) {
-            const res = await fetch(`${API}?get=roster`);
-            const all = await res.json();
-            const filtered = all.filter(x => x.class == c && x.section == s);
-            document.getElementById('att-list').innerHTML = filtered.map(x => `
+            const all = await (await fetch(`${API}?get=roster`)).json();
+            currentRoster = all.filter(x => x.class == c && x.section == s);
+            document.getElementById('att-list').innerHTML = currentRoster.map(x => `
                 <div class="student-item">
-                    <span>${x.name}</span>
-                    <div style="display:flex; gap:8px;">
+                    <span><b>${x.name}</b></span>
+                    <div style="display:flex; gap:10px;">
                         <button class="btn-p" onclick="mark('${x.name}','${x.roll}','Present','${c}','${s}')">P</button>
                         <button class="btn-a" onclick="mark('${x.name}','${x.roll}','Absent','${c}','${s}')">A</button>
                     </div>
                 </div>
-            `).join('') || "<p style='text-align:center; opacity:0.5'>Room empty</p>";
+            `).join('');
         }
 
         async function mark(n, r, s, cl, se) {
-            toast("Recording " + s + "...");
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "markAttendance", name: n, roll: r, status: s, class: cl, section: se, userEmail: sessionStorage.getItem('u_email') })});
-            toast("Success!");
+            const p = document.getElementById('period-sel').value;
+            toast(`${n}: ${s}`);
+            fetch(API, { method: "POST", body: JSON.stringify({ action: "markAttendance", name: n, roll: r, status: s, class: cl, section: se, period: p, userEmail: sessionStorage.getItem('u_email') })});
         }
 
-        async function updateWebsite() {
-            toast("Syncing to GitHub...");
-            const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:"pushToGitHub", adminEmail:ADMIN, htmlContent: document.documentElement.outerHTML })});
-            toast(await res.text());
-        }
-
-        async function loadRequests() {
-            const res = await fetch(`${API}?action=getRequests&email=${ADMIN}`);
-            const reqs = await res.json();
-            document.getElementById('request-list').innerHTML = reqs.map(r => `
-                <div class="student-item" style="flex-direction:column; align-items:start;">
-                    <b>${r[1]}</b> <small>${r[0]}</small>
-                    <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
-                        <button onclick="adminAction('approveTeacher','${r[0]}','${r[2]}','${r[3]}')" style="background:var(--success); height:32px; font-size:12px; padding:0;">Allow</button>
-                        <button onclick="adminAction('denyRequest','${r[0]}')" style="background:var(--danger); height:32px; font-size:12px; padding:0;">Deny</button>
-                    </div>
-                </div>
-            `).join('') || "<p style='opacity:0.5; font-size:12px;'>No requests.</p>";
-        }
-
-        async function adminAction(act, email, cls, sec) {
-            const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:act, teacherEmail:email, targetClass:cls, targetSec:sec, adminEmail:ADMIN })});
-            toast(await res.text());
-            loadRequests();
+        async function markAllPresent() {
+            const room = document.getElementById('assigned-room').innerText.split(' ');
+            toast("Bulk Marking P...");
+            currentRoster.forEach(std => mark(std.name, std.roll, 'Present', room[0], room[1]));
         }
 
         async function addStudent() {
-            const data = { action:"addStudent", adminEmail:ADMIN, name:document.getElementById('st-name').value, roll:document.getElementById('st-roll').value, class:document.getElementById('st-class').value, section:document.getElementById('st-sec').value };
-            const res = await fetch(API, { method:"POST", body:JSON.stringify(data)});
-            toast(await res.text());
+            const nEl = document.getElementById('st-name'), rEl = document.getElementById('st-roll');
+            if(!nEl.value) return toast("Name Required");
+            toast(`Added ${nEl.value}`);
+            const data = { action: "addStudent", adminEmail: ADMIN, name: nEl.value, roll: rEl.value, class: document.getElementById('st-class').value, section: document.getElementById('st-sec').value };
+            fetch(API, { method: "POST", body: JSON.stringify(data)});
+            nEl.value = ""; rEl.value = ""; nEl.focus(); 
         }
 
-        async function sendRequest() {
-            const u = sessionStorage.getItem('u_email');
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "requestAccess", email: u, name: u.split('@')[0], class: document.getElementById('req-class').value, section: document.getElementById('req-sec').value }) });
-            toast("Request Sent!");
-        }
-
-        function downloadCSV() { window.location.href = `${API}?action=downloadCSV&class=${encodeURIComponent(document.getElementById('assigned-room').innerText.split(' ')[0])}`; }
+        async function updateWeb() { toast("Syncing GitHub..."); const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:"pushToGitHub", adminEmail:ADMIN, htmlContent: document.documentElement.outerHTML })}); toast(await res.text()); }
+        async function loadReqs() { const reqs = await (await fetch(`${API}?action=getRequests&email=${ADMIN}`)).json(); document.getElementById('request-list').innerHTML = reqs.map(r => `<div class="student-item"><div><b>${r[1]}</b><br><small>${r[0]}</small></div><button onclick="adminAction('approveTeacher','${r[0]}','${r[2]}','${r[3]}')" style="background:var(--success); width:70px; height:35px; font-size:11px;">Allow</button></div>`).join('') || "No requests."; }
+        async function adminAction(act, email, cls, sec) { await fetch(API, { method:"POST", body:JSON.stringify({ action:act, teacherEmail:email, targetClass:cls, targetSec:sec, adminEmail:ADMIN })}); loadReqs(); }
+        async function sendRequest() { toast("Sent!"); fetch(API, { method: "POST", body: JSON.stringify({ action: "requestAccess", email: sessionStorage.getItem('u_email'), name: sessionStorage.getItem('u_email').split('@')[0], class: document.getElementById('req-class').value, section: document.getElementById('req-sec').value }) }); }
         function logout() { sessionStorage.clear(); location.reload(); }
     </script>
 </body>
