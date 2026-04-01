@@ -3,42 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Attendo V2 | Ultra Final</title>
+    <title>Yuvan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); 
-            margin: 0; padding: 15px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; min-height: 100vh; 
-        }
-        .card { 
-            background: var(--card); border-radius: 24px; width: 100%; max-width: 420px; 
-            padding: 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
-            border: 1px solid rgba(255,255,255,0.05); text-align: center; margin-bottom: 15px;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .card { background: var(--card); border-radius: 24px; width: 100%; max-width: 420px; padding: 1.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
         h1 { color: var(--gold); font-weight: 900; font-size: 2.2rem; margin: 0 0 1rem; letter-spacing: -2px; }
-        input, select, button { 
-            width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1); background: #0f172a; 
-            color: white; font-size: 15px; font-weight: 600; 
-        }
+        input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
         button:active { transform: scale(0.96); opacity: 0.8; }
+        .btn-gold { background: var(--gold); color: black; }
         .hidden { display: none !important; }
-        #toast { 
-            position: fixed; top: 20px; background: var(--gold); color: black; 
-            padding: 10px 25px; border-radius: 50px; font-weight: 800; 
-            visibility: hidden; z-index: 999; 
-        }
+        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 10px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         @keyframes pop { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .student-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px; background: rgba(255,255,255,0.03); border-radius: 14px; 
-            margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left;
-        }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 14px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
         .btn-p { background: var(--gold); color: black; width: 45px; height: 45px; margin: 0; border-radius: 10px; font-weight: 800; }
         .btn-a { background: var(--red); width: 45px; height: 45px; margin: 0; border-radius: 10px; font-weight: 800; }
     </style>
@@ -48,29 +29,23 @@
 
     <div id="auth-card" class="card">
         <h1>ATTENDO</h1>
-        <input type="text" id="l-email" placeholder="Email Address">
+        <h1>A attendance made by yuvan</h1>
+        <input type="text" id="l-email" placeholder="Teacher Email">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
     </div>
 
-    <div id="main-ui" class="hidden">
-        <div id="admin-panel" class="card hidden">
-            <h3 style="color:var(--gold); margin:0 0 5px;">ADMIN TOOLS</h3>
-            <input type="text" id="st-name" placeholder="Full Name">
-            <input type="text" id="st-roll" placeholder="Roll Number">
-            <div style="display:flex; gap:5px;">
-                <select id="st-class">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="st-sec"><option>Sec A</option><option>Sec B</option></select>
-            </div>
-            <button onclick="addStudent()" style="background:var(--gold); color:black;">SAVE STUDENT</button>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:5px;">EXPORT REPORT (CSV)</button>
+    <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
+        <div class="card">
+            <h3 style="color:var(--gold); margin:0;">Class Management</h3>
+            <input type="text" id="st-name" placeholder="Student Name">
+            <input type="number" id="st-roll" placeholder="Roll Number">
+            <button onclick="addStudent()" class="btn-gold">ADD TO THIS CLASS</button>
         </div>
 
         <div class="card">
-            <h2 id="welcome-msg" style="color:var(--gold); margin:0 0 10px;">Attendance</h2>
+            <h2 style="color:var(--gold); margin:0 0 10px;">Attendance Desk</h2>
+            <input type="date" id="att-date">
             <div style="display:flex; gap:8px;">
                 <select id="sel-class" onchange="renderRoster()">
                     <option>Class 6</option><option>Class 7</option><option>Class 8</option>
@@ -78,84 +53,90 @@
                 </select>
                 <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
-            <select id="period-sel"><option>Period 1</option><option>Period 2</option><option>Period 3</option><option>Period 4</option><option>Period 5</option><option>Period 6</option></select>
+            <select id="period-sel">
+    <option>Period 1</option>
+    <option>Period 2</option>
+    <option>Period 3</option>
+    <option>Period 4</option>
+    <option>Period 5</option>
+    <option>Period 6</option>
+    <option>Period 7</option>
+    <option>Period 8</option>
+</select>
             <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="logout()" style="background:transparent; color:var(--red); border:1px solid var(--red); margin-top:15px; padding:8px;">LOGOUT</button>
+            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD REPORT (CSV)</button>
+            <button onclick="logout()" style="background:transparent; color:var(--red); border:1px solid var(--red); margin-top:10px; padding:8px;">LOGOUT</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbxiN7oB5TzOolPONyeykcTKRXhnhqr6DDAI7DZd1pT1H41Puqo5a364lwzJ4ChxPqhBuQ/exec";
-        const ADMIN = "yuvansood1234@gmail.com";
+        const API = "https://script.google.com/macros/s/AKfycbwGk9cA16nA5vM4t_Gy4ZOFrnGhIaw9AzLPaEnfUdbNISbJr_ERG6CqVVNtsRLSYykCkg/exec";
         let cachedRoster = [];
 
-        function toast(m) { 
-            const t = document.getElementById("toast"); t.innerText = m; 
-            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); 
-        }
+        function toast(m) { const t = document.getElementById("toast"); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 
-        async function initApp() {
+        function initApp() {
             const u = localStorage.getItem('u_email');
             if(!u) return;
             document.getElementById('auth-card').classList.add('hidden');
             document.getElementById('main-ui').classList.remove('hidden');
-            if(u === ADMIN) document.getElementById('admin-panel').classList.remove('hidden');
-            
-            toast("Syncing...");
-            try {
-                const res = await fetch(`${API}?action=getRoster`);
-                cachedRoster = await res.json();
-                renderRoster();
-            } catch(e) { toast("Offline Mode"); }
+            document.getElementById('att-date').valueAsDate = new Date();
+            fetchRoster();
+        }
+
+        async function fetchRoster() {
+            toast("Syncing Roster...");
+            const res = await fetch(`${API}?action=getRoster`);
+            cachedRoster = await res.json();
+            renderRoster();
         }
 
         function renderRoster() {
             const c = document.getElementById('sel-class').value;
             const s = document.getElementById('sel-sec').value;
             const list = document.getElementById('att-list');
-            const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s);
+            const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s).sort((a,b) => a[1] - b[1]);
             list.innerHTML = filtered.map(x => `
                 <div class="student-item">
-                    <div style="display:flex; flex-direction:column;">
-                        <b>${x[0]}</b>
-                        <small style="opacity:0.4; font-size:9px; cursor:pointer;" onclick="deleteStudent('${x[0]}','${x[1]}')">REMOVE</small>
-                    </div>
+                    <div><b>${x[1]}. ${x[0]}</b><br><small style="opacity:0.4; cursor:pointer;" onclick="deleteStudent('${x[1]}')">REMOVE</small></div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-p" onclick="mark('${x[0]}','${x[1]}','Present')">P</button>
                         <button class="btn-a" onclick="mark('${x[0]}','${x[1]}','Absent')">A</button>
                     </div>
-                </div>`).join('') || "<p style='opacity:0.5;'>No Students</p>";
+                </div>`).join('') || "<p style='opacity:0.5;'>Empty Class</p>";
         }
 
         function mark(n, r, s) {
             toast(`${n}: ${s}`);
             fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify({
-                action:"markAttendance", name:n, roll:r, status:s, 
-                class:document.getElementById('sel-class').value, 
-                section:document.getElementById('sel-sec').value, 
-                period:document.getElementById('period-sel').value, 
+                action:"markAttendance", date:document.getElementById('att-date').value, 
+                name:n, roll:r, status:s, class:document.getElementById('sel-class').value, 
+                section:document.getElementById('sel-sec').value, period:document.getElementById('period-sel').value, 
                 userEmail:localStorage.getItem('u_email')
             })});
         }
 
         async function addStudent() {
             const n = document.getElementById('st-name').value;
-            if(!n) return;
-            toast("Saving...");
-            const newData = [n, document.getElementById('st-roll').value, document.getElementById('st-class').value, document.getElementById('st-sec').value];
-            cachedRoster.push(newData); 
-            renderRoster(); 
-            document.getElementById('st-name').value = "";
-            document.getElementById('st-name').focus();
-            await fetch(API, { method: "POST", body: JSON.stringify({ action:"addStudent", adminEmail:ADMIN, name:newData[0], roll:newData[1], class:newData[2], section:newData[3] })});
+            const r = document.getElementById('st-roll').value;
+            const c = document.getElementById('sel-class').value;
+            const s = document.getElementById('sel-sec').value;
+            if(!n || !r) return toast("Enter Name & Roll!");
+            toast(`Adding ${n}...`);
+            cachedRoster.push([n, r, c, s]);
+            renderRoster();
+            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
+            await fetch(API, { method: "POST", body: JSON.stringify({ action:"addStudent", name:n, roll:r, class:c, section:s })});
         }
 
-        async function deleteStudent(n, r) {
-            if(!confirm(`Delete ${n}?`)) return;
+        async function deleteStudent(r) {
+            if(!confirm("Delete this student?")) return;
+            const c = document.getElementById('sel-class').value;
+            const s = document.getElementById('sel-sec').value;
             toast("Removing...");
-            cachedRoster = cachedRoster.filter(x => !(x[0] === n && x[1] == r));
+            cachedRoster = cachedRoster.filter(x => !(x[1] == r && x[2] == c && x[3] == s));
             renderRoster();
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "deleteStudent", adminEmail: ADMIN, name: n, roll: r })});
+            await fetch(API, { method: "POST", body: JSON.stringify({ action: "deleteStudent", roll: r, class: c, section: s })});
         }
 
         async function downloadReport() {
@@ -164,24 +145,19 @@
             const data = await res.json();
             let csv = data.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
             const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `Attendance_Report_${new Date().toLocaleDateString()}.csv`);
+            a.href = window.URL.createObjectURL(blob);
+            a.download = `Attendance_Master_Report.csv`;
             a.click();
         }
 
         async function login() {
-            const e = document.getElementById('l-email').value.trim();
-            const p = document.getElementById('l-pass').value.trim();
+            const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
             toast("Verifying...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-            if((await res.text()).trim() === "valid") {
-                localStorage.setItem('u_email', e.toLowerCase());
-                location.reload();
-            } else toast("Denied");
+            if((await res.text()).trim() === "valid") { localStorage.setItem('u_email', e); location.reload(); }
+            else toast("Access Denied");
         }
-
         function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
