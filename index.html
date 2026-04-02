@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Attendo | By Yuvan</title>
+    <title>Attendo | Master Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
@@ -20,12 +20,12 @@
         .credit-text { color: var(--gold); font-weight: 600; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; }
 
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
-        input, select, button { width: 100%; padding: 13px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; }
+        input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
         .btn-gold { background: var(--gold); color: black; }
         .hidden { display: none !important; }
         
-        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
+        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         @keyframes pop { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); }
@@ -35,7 +35,7 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div class="credit-text" style="margin:0;">SESSION ACTIVE</div>
+        <div class="credit-text" style="margin:0;">SECURE SESSION</div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
@@ -52,28 +52,9 @@
         <input type="text" id="l-email" placeholder="Email Address">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
-        <p style="font-size:11px; margin-top:10px; cursor:pointer; color:var(--gold);" onclick="toggleCard('reg-card')">Create Account</p>
-    </div>
-
-    <div id="reg-card" class="card hidden">
-        <h3 style="color:var(--gold); margin:0;">Join Attendo</h3>
-        <input type="text" id="r-name" placeholder="Full Name">
-        <input type="text" id="r-email" placeholder="Email Address">
-        <input type="password" id="r-pass" placeholder="Create Password">
-        <button onclick="sendOTP()" id="otp-btn">SEND OTP TO EMAIL</button>
-        <div id="otp-area" class="hidden">
-            <input type="number" id="r-otp-input" placeholder="Enter 6-Digit OTP">
-            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
-        </div>
-        <p style="font-size:11px; cursor:pointer;" onclick="location.reload()">Back to Login</p>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
-        <div id="admin-tools" class="card hidden" style="border: 1px solid var(--gold);">
-            <h4 style="color:var(--gold); margin:0;">PENDING APPROVALS</h4>
-            <div id="pending-list" style="font-size:11px; margin-top:10px;"></div>
-        </div>
-
         <div class="card">
             <h3 style="color:var(--gold); margin:0 0 5px;">Add Student</h3>
             <input type="text" id="st-name" placeholder="Full Name">
@@ -90,17 +71,22 @@
                 </select>
                 <select id="sel-sec" onchange="fetchRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
+            <select id="period-sel">
+                <option value="1">Period 1</option><option value="2">Period 2</option>
+                <option value="3">Period 3</option><option value="4">Period 4</option>
+                <option value="5">Period 5</option><option value="6">Period 6</option>
+                <option value="7">Period 7</option><option value="8">Period 8</option>
+            </select>
             <div id="att-list" style="margin-top:10px;"></div>
+            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">EXPORT GRID REPORT (CSV)</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbxNlf2ukyb1vDU2BxzwRdtpPwPFJ0pmTV02l70Yr_VLlSEMMQ_MsmumT_jBISWiRxNAIA/exec";
-        const ADMIN = "yuvansood1234@gmail.com";
-        let liveOTP = null, cachedRoster = [];
+        const API = "https://script.google.com/macros/s/AKfycbxo3yyn8DOnF7d07Z3OEPSnjkx01zPs8RSn3fRstjU28998OQ0JMNDBQ9W2rMWLjQEFgg/exec";
+        let cachedRoster = [];
 
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 
         async function initApp() {
             const u = sessionStorage.getItem('u_email');
@@ -109,52 +95,15 @@
             document.getElementById('nav-ui').classList.remove('hidden');
             document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
-            if(u === ADMIN) loadPending();
             fetchRoster();
         }
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase();
             const p = document.getElementById('l-pass').value;
-            toast("Verifying...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
             if((await res.text()) === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-            else toast("Denied: Incorrect Login or Not Approved");
-        }
-
-        async function sendOTP() {
-            const e = document.getElementById('r-email').value;
-            if(!e) return toast("Enter Email!");
-            toast("Sending Code...");
-            const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:"sendOTP", email:e }) });
-            liveOTP = await res.text();
-            document.getElementById('otp-area').classList.remove('hidden');
-            document.getElementById('otp-btn').classList.add('hidden');
-            toast("OTP Sent to Email!");
-        }
-
-        async function verifyAndReq() {
-            if(document.getElementById('r-otp-input').value !== liveOTP) return toast("Wrong OTP!");
-            toast("Requesting Account...");
-            await fetch(API, { method:"POST", body:JSON.stringify({ action: "requestAccount", email: document.getElementById('r-email').value, name: document.getElementById('r-name').value, pass: document.getElementById('r-pass').value })});
-            toast("Requested! Wait for Admin Approval.");
-            location.reload();
-        }
-
-        async function loadPending() {
-            const res = await fetch(`${API}?action=getPending&email=${ADMIN}`);
-            const data = await res.json();
-            document.getElementById('pending-list').innerHTML = data.map(u => `
-                <div class="student-item" style="padding:8px;">
-                    <div><b>${u[1]}</b><br>${u[0]}</div>
-                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:30px; font-size:10px;">APPROVE</button>
-                </div>`).join('') || "No requests.";
-        }
-
-        async function approveUser(email) {
-            toast("Approving...");
-            await fetch(API, { method:"POST", body:JSON.stringify({ action:"approveUser", adminEmail:ADMIN, targetEmail:email }) });
-            loadPending();
+            else toast("Denied");
         }
 
         async function fetchRoster() { const res = await fetch(`${API}?action=getRoster`); cachedRoster = await res.json(); renderRoster(); }
@@ -166,10 +115,10 @@
                 <div class="student-item">
                     <b>${x[1]}. ${x[0]}</b>
                     <div style="display:flex; gap:8px;">
-                        <button style="background:var(--gold); width:45px; height:45px; border-radius:10px;" onclick="mark('${x[0]}','${x[1]}','P')">P</button>
-                        <button style="background:var(--red); width:45px; height:45px; border-radius:10px;" onclick="mark('${x[0]}','${x[1]}','A')">A</button>
+                        <button style="background:var(--gold); width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','P')">P</button>
+                        <button style="background:var(--red); width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','A')">A</button>
                     </div>
-                </div>`).join('') || "Empty Room";
+                </div>`).join('');
         }
 
         function mark(n, r, s) {
@@ -177,7 +126,8 @@
             fetch(API, { method:"POST", mode:"no-cors", body:JSON.stringify({ 
                 action:"markAttendance", date:document.getElementById('att-date').value, 
                 name:n, roll:r, status:s, class:document.getElementById('sel-class').value, 
-                section:document.getElementById('sel-sec').value, userEmail:sessionStorage.getItem('u_email') 
+                section:document.getElementById('sel-sec').value, period:document.getElementById('period-sel').value, 
+                userEmail:sessionStorage.getItem('u_email') 
             })});
         }
 
@@ -185,10 +135,36 @@
             const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
             if(!n || !r) return toast("Missing Info!");
             toast(`Adding ${n}...`);
-            cachedRoster.push([n, r, c, s]);
-            renderRoster();
-            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
+            cachedRoster.push([n, r, c, s]); renderRoster();
             await fetch(API, { method:"POST", body:JSON.stringify({ action:"addStudent", name:n, roll:r, class:c, section:s })});
+            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
+        }
+
+        async function downloadReport() {
+            toast("Generating Grid Report...");
+            const res = await fetch(`${API}?action=getReport`);
+            const raw = await res.json();
+            const date = document.getElementById('att-date').value;
+            
+            let csv = "Date,Roll,Name,Class,Sec,P1,P2,P3,P4,P5,P6,P7,P8\n";
+            const dayData = raw.filter(r => r[0].includes(date));
+            const uniqueRolls = [...new Set(dayData.map(r => r[2]))];
+            
+            uniqueRolls.forEach(roll => {
+                const s = dayData.find(r => r[2] == roll);
+                let row = `${date},${roll},${s[3]},${s[4]},${s[5]}`;
+                for(let p=1; p<=8; p++) {
+                    const found = dayData.find(r => r[2] == roll && r[1] == p);
+                    row += `,${found ? found[6] : '-'}`;
+                }
+                csv += row + "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = window.URL.createObjectURL(blob);
+            a.download = `Attendance_Grid_${date}.csv`;
+            a.click();
         }
 
         function logout() { sessionStorage.clear(); location.reload(); }
