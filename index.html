@@ -3,38 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Attendo Pro | Yuvan</title>
+    <title>Attendo | By Yuvan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
+        .top-nav { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .logout-btn { color: var(--red); font-weight: 800; cursor: pointer; border: 1.5px solid var(--red); padding: 5px 12px; border-radius: 10px; font-size: 11px; text-transform: uppercase; }
+
         .brand-box { text-align: center; margin-bottom: 25px; }
         .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); line-height: 1; }
-        .brand-line { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
-        .line { height: 1px; width: 30px; background: var(--gold); opacity: 0.3; }
+        .brand-line { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; }
+        .line { height: 1px; width: 25px; background: var(--gold); opacity: 0.3; }
         .credit-text { color: var(--gold); font-weight: 600; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; }
 
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
-        input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
+        input, select, button { width: 100%; padding: 13px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
         button:active { transform: scale(0.96); }
         .btn-gold { background: var(--gold); color: black; }
         .hidden { display: none !important; }
         
-        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 999; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         @keyframes pop { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
-        .btn-p { background: var(--gold); color: black; width: 45px; height: 45px; margin: 0; border-radius: 10px; font-weight: 800; }
-        .btn-a { background: var(--red); width: 45px; height: 45px; margin: 0; border-radius: 10px; font-weight: 800; }
-        .link-text { color: var(--gold); font-size: 11px; cursor: pointer; text-decoration: underline; margin: 10px 5px 0; display: inline-block; font-weight: 600; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body onload="initApp()">
     <div id="toast">Ready</div>
+
+    <div id="nav-ui" class="top-nav hidden">
+        <div class="credit-text" style="margin:0;"></div>
+        <div class="logout-btn" onclick="logout()">Logout</div>
+    </div>
 
     <div class="brand-box">
         <h1>ATTENDO</h1>
@@ -49,104 +53,95 @@
         <input type="text" id="l-email" placeholder="Email Address">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
-        <div>
-            <span class="link-text" onclick="showSection('reg-card')">CREATE ACCOUNT</span>
-            <span class="link-text" onclick="showSection('forgot-card')">FORGOT PASSWORD</span>
-        </div>
+        <p style="font-size:11px; margin-top:10px; cursor:pointer; color:var(--gold);" onclick="toggleCard('reg-card')">Create Account</p>
     </div>
 
     <div id="reg-card" class="card hidden">
-        <h3 style="color:var(--gold); margin:0;">Request Access</h3>
-        <p style="font-size:11px; opacity:0.6;">Admin must approve your account.</p>
+        <h3 style="color:var(--gold); margin:0;">Join Attendo</h3>
         <input type="text" id="r-name" placeholder="Full Name">
         <input type="text" id="r-email" placeholder="Email Address">
         <input type="password" id="r-pass" placeholder="Create Password">
-        <input type="number" id="r-pin" placeholder="Recovery PIN (4 Digits)">
-        <button onclick="register()" class="btn-gold">SEND REQUEST</button>
-        <span class="link-text" onclick="showSection('auth-card')">BACK TO LOGIN</span>
-    </div>
-
-    <div id="forgot-card" class="card hidden">
-        <h3 style="color:var(--gold); margin:0;">Recover Password</h3>
-        <input type="text" id="f-email" placeholder="Email Address">
-        <input type="number" id="f-pin" placeholder="Your 4-Digit PIN">
-        <button onclick="recover()" class="btn-gold">REVEAL PASSWORD</button>
-        <span class="link-text" onclick="showSection('auth-card')">BACK TO LOGIN</span>
+        <button onclick="sendOTP()" id="otp-btn">SEND OTP TO EMAIL</button>
+        <div id="otp-area" class="hidden">
+            <input type="number" id="r-otp-input" placeholder="Enter 6-Digit OTP">
+            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
+        </div>
+        <p style="font-size:11px; cursor:pointer;" onclick="location.reload()">Back to Login</p>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
-        <div id="admin-tools" class="card hidden" style="border: 1px solid var(--gold); background: rgba(250, 204, 21, 0.05);">
-            <h4 style="color:var(--gold); margin:0 0 10px 0;">PENDING APPROVALS</h4>
-            <div id="pending-list"></div>
+        <div id="admin-tools" class="card hidden" style="border: 1px solid var(--gold);">
+            <h4 style="color:var(--gold); margin:0;">PENDING APPROVALS</h4>
+            <div id="pending-list" style="font-size:11px; margin-top:10px;"></div>
         </div>
 
         <div class="card">
-            <h3 style="color:var(--gold); margin:0 0 5px;">Class Management</h3>
-            <input type="text" id="st-name" placeholder="Student Name">
-            <input type="number" id="st-roll" placeholder="Roll Number">
-            <button onclick="addStudent()" class="btn-gold">ADD TO CLASS</button>
-        </div>
-
-        <div class="card">
-            <h2 style="color:var(--gold); margin:0 0 10px;">Attendance Desk</h2>
             <input type="date" id="att-date">
             <div style="display:flex; gap:8px;">
-                <select id="sel-class" onchange="renderRoster()">
+                <select id="sel-class" onchange="fetchRoster()">
                     <option>Class 6</option><option>Class 7</option><option>Class 8</option>
                     <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
-                <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
+                <select id="sel-sec" onchange="fetchRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
-            <select id="period-sel">
-                <option>Period 1</option><option>Period 2</option><option>Period 3</option>
-                <option>Period 4</option><option>Period 5</option><option>Period 6</option>
-                <option>Period 7</option><option>Period 8</option><option>Period 9</option>
-            </select>
             <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD REPORT (CSV)</button>
-            <button onclick="logout()" style="background:transparent; color:var(--red); border:1px solid var(--red); margin-top:10px; padding:10px;">SIGN OUT</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbwg2dD0IqUMymI_VFfVdkb_NlklVJYWXC1Rdp4mF2Fp25uKarpN_os4p0QxbcF755wj/exec";
+        const API = "https://script.google.com/macros/s/AKfycbxNlf2ukyb1vDU2BxzwRdtpPwPFJ0pmTV02l70Yr_VLlSEMMQ_MsmumT_jBISWiRxNAIA/exec";
         const ADMIN = "yuvansood1234@gmail.com";
+        let liveOTP = null;
         let cachedRoster = [];
 
-        function toast(m) { const t = document.getElementById("toast"); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
-        function showSection(id) { document.querySelectorAll('.card').forEach(c => c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id==='main-ui'){ if(localStorage.getItem('u_email')===ADMIN) document.getElementById('admin-tools').classList.remove('hidden'); } }
+        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 
         async function initApp() {
-            const u = localStorage.getItem('u_email');
+            // SESSION STORAGE FOR AUTO-LOGOUT ON TAB CLOSE
+            const u = sessionStorage.getItem('u_email');
             if(!u) return;
-            showSection('main-ui');
+            document.getElementById('auth-card').classList.add('hidden');
+            document.getElementById('nav-ui').classList.remove('hidden');
+            document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
             if(u === ADMIN) loadPending();
             fetchRoster();
         }
 
         async function login() {
-            const e = document.getElementById('l-email').value.trim().toLowerCase(), p = document.getElementById('l-pass').value;
-            if(!e || !p) return toast("Enter all fields");
-            toast("Verifying...");
+            const e = document.getElementById('l-email').value.toLowerCase();
+            const p = document.getElementById('l-pass').value;
+            toast("Checking Credentials...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-            if((await res.text()).trim() === "valid") { localStorage.setItem('u_email', e); location.reload(); }
-            else toast("Denied: Wrong password or Pending Approval");
+            if((await res.text()) === "valid") { 
+                sessionStorage.setItem('u_email', e); 
+                location.reload(); 
+            } else toast("Access Denied: Wrong Login or Not Approved");
         }
 
-        async function register() {
-            const n = document.getElementById('r-name').value, e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value, pin = document.getElementById('r-pin').value;
-            if(!n || !e || !p || !pin) return toast("Fill all fields");
-            toast("Sending Request...");
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "requestAccount", email: e, name: n, pass: p, pin: pin }) });
-            toast("Requested! Wait for Approval.");
-            showSection('auth-card');
+        async function sendOTP() {
+            const e = document.getElementById('r-email').value;
+            if(!e) return toast("Enter Email!");
+            toast("Sending OTP...");
+            const res = await fetch(API, { method:"POST", body:JSON.stringify({ action:"sendOTP", email:e }) });
+            liveOTP = await res.text();
+            document.getElementById('otp-area').classList.remove('hidden');
+            document.getElementById('otp-btn').classList.add('hidden');
+            toast("Code sent to " + e);
         }
 
-        async function recover() {
-            const e = document.getElementById('f-email').value, p = document.getElementById('f-pin').value;
-            const res = await fetch(`${API}?action=forgot&email=${e}&pin=${p}`);
-            alert(await res.text());
+        async function verifyAndReq() {
+            if(document.getElementById('r-otp-input').value !== liveOTP) return toast("Invalid OTP!");
+            toast("Requesting Account...");
+            await fetch(API, { method:"POST", body:JSON.stringify({
+                action: "requestAccount",
+                email: document.getElementById('r-email').value,
+                name: document.getElementById('r-name').value,
+                pass: document.getElementById('r-pass').value
+            })});
+            toast("Requested! Wait for Admin Approval.");
+            location.reload();
         }
 
         async function loadPending() {
@@ -154,14 +149,14 @@
             const data = await res.json();
             document.getElementById('pending-list').innerHTML = data.map(u => `
                 <div class="student-item" style="padding:8px;">
-                    <div style="font-size:11px;"><b>${u[1]}</b><br>${u[0]}</div>
-                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; padding:5px; font-size:10px;">APPROVE</button>
-                </div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No pending requests.</p>";
+                    <div><b>${u[1]}</b><br>${u[0]}</div>
+                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:30px; font-size:10px;">APPROVE</button>
+                </div>`).join('') || "No requests.";
         }
 
         async function approveUser(email) {
-            toast("Approving...");
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "approveUser", adminEmail: ADMIN, targetEmail: email }) });
+            toast("Approving Teacher...");
+            await fetch(API, { method:"POST", body:JSON.stringify({ action:"approveUser", adminEmail:ADMIN, targetEmail:email }) });
             loadPending();
         }
 
@@ -172,54 +167,28 @@
         }
 
         function renderRoster() {
-            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value, list = document.getElementById('att-list');
+            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
             const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s).sort((a,b) => a[1] - b[1]);
-            list.innerHTML = filtered.map(x => `
+            document.getElementById('att-list').innerHTML = filtered.map(x => `
                 <div class="student-item">
-                    <div><b>${x[1]}. ${x[0]}</b><br><small style="opacity:0.4; cursor:pointer;" onclick="deleteStudent('${x[1]}')">REMOVE</small></div>
+                    <b>${x[1]}. ${x[0]}</b>
                     <div style="display:flex; gap:8px;">
-                        <button class="btn-p" onclick="mark('${x[0]}','${x[1]}','Present')">P</button>
-                        <button class="btn-a" onclick="mark('${x[0]}','${x[1]}','Absent')">A</button>
+                        <button style="background:var(--gold); color:black; width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','P')">P</button>
+                        <button style="background:var(--red); width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','A')">A</button>
                     </div>
-                </div>`).join('') || "<p style='opacity:0.5;'>No Students Found</p>";
+                </div>`).join('') || "Empty Room";
         }
 
         function mark(n, r, s) {
             toast(`${n}: ${s}`);
-            fetch(API, { method: "POST", mode: "no-cors", body: JSON.stringify({ action:"markAttendance", date:document.getElementById('att-date').value, name:n, roll:r, status:s, class:document.getElementById('sel-class').value, section:document.getElementById('sel-sec').value, period:document.getElementById('period-sel').value, userEmail:localStorage.getItem('u_email') })});
+            fetch(API, { method:"POST", mode:"no-cors", body:JSON.stringify({ 
+                action:"markAttendance", date:document.getElementById('att-date').value, 
+                name:n, roll:r, status:s, class:document.getElementById('sel-class').value, 
+                section:document.getElementById('sel-sec').value, userEmail:sessionStorage.getItem('u_email') 
+            })});
         }
 
-        async function addStudent() {
-            const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
-            if(!n || !r) return toast("Enter Name & Roll!");
-            toast(`Adding ${n}...`);
-            cachedRoster.push([n, r, c, s]);
-            renderRoster();
-            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
-            await fetch(API, { method: "POST", body: JSON.stringify({ action:"addStudent", name:n, roll:r, class:c, section:s })});
-        }
-
-        async function deleteStudent(r) {
-            if(!confirm("Remove student?")) return;
-            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
-            cachedRoster = cachedRoster.filter(x => !(x[1] == r && x[2] == c && x[3] == s));
-            renderRoster();
-            await fetch(API, { method: "POST", body: JSON.stringify({ action: "deleteStudent", roll: r, class: c, section: s })});
-        }
-
-        async function downloadReport() {
-            toast("Generating CSV...");
-            const res = await fetch(`${API}?action=getReport`);
-            const data = await res.json();
-            let csv = data.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = `Attendo_Master_Report.csv`;
-            a.click();
-        }
-
-        function logout() { localStorage.clear(); location.reload(); }
+        function logout() { sessionStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
