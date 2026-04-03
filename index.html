@@ -28,7 +28,8 @@
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         @keyframes pop { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .link-btn { color: var(--gold); font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body onload="initApp()">
@@ -36,7 +37,7 @@
 
     <div id="nav-ui" class="top-nav hidden">
         <div class="credit-text" style="margin:0;"></div>
-        <div class="logout-btn" onclick="logout()">Logout</div>
+        <div class="logout-btn" onclick="logout()">Sign Out</div>
     </div>
 
     <div class="brand-box">
@@ -52,119 +53,160 @@
         <input type="text" id="l-email" placeholder="Email Address">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
+        <div style="display:flex; justify-content:space-between;">
+            <span class="link-btn" onclick="toggleCard('reg-card')">New Account</span>
+            <span class="link-btn" onclick="toggleCard('forgot-card')">Forgot Password</span>
+        </div>
+    </div>
+
+    <div id="reg-card" class="card hidden">
+        <h3>Join Attendo</h3>
+        <input type="text" id="r-name" placeholder="Name">
+        <input type="text" id="r-email" placeholder="Email">
+        <input type="password" id="r-pass" placeholder="Password">
+        <input type="number" id="r-pin" placeholder="Recovery PIN (4-Digits)">
+        <button onclick="sendOTP()" id="otp-btn">GET OTP</button>
+        <div id="otp-area" class="hidden">
+            <input type="number" id="r-otp" placeholder="Enter OTP">
+            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
+        </div>
+        <span class="link-btn" onclick="location.reload()">Back to Login</span>
+    </div>
+
+    <div id="forgot-card" class="card hidden">
+        <h3>Recover Password</h3>
+        <input type="text" id="f-email" placeholder="Email Address">
+        <input type="number" id="f-pin" placeholder="Your 4-Digit PIN">
+        <button onclick="recover()" class="btn-gold">SHOW PASSWORD</button>
+        <span class="link-btn" onclick="location.reload()">Back to Login</span>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
         <div class="card">
-            <h3 style="color:var(--gold); margin:0 0 5px;">Add Student</h3>
+            <h4 style="color:var(--gold); margin:0;">Add Student</h4>
             <input type="text" id="st-name" placeholder="Full Name">
             <input type="number" id="st-roll" placeholder="Roll Number">
-            <button onclick="addStudent()" class="btn-gold">SAVE TO CLASS</button>
+            <button onclick="addStudent()" class="btn-gold">SAVE</button>
         </div>
 
         <div class="card">
-            <input type="date" id="att-date">
+            <input type="date" id="att-date" onchange="fetchData()">
             <div style="display:flex; gap:8px;">
-                <select id="sel-class" onchange="fetchRoster()">
+                <select id="sel-class" onchange="renderRoster()">
                     <option>Class 6</option><option>Class 7</option><option>Class 8</option>
                     <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
-                <select id="sel-sec" onchange="fetchRoster()"><option>Sec A</option><option>Sec B</option></select>
+                <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
-            <select id="period-sel">
-                <option value="1">Period 1</option><option value="2">Period 2</option>
-                <option value="3">Period 3</option><option value="4">Period 4</option>
-                <option value="5">Period 5</option><option value="6">Period 6</option>
-                <option value="7">Period 7</option><option value="8">Period 8</option>
+            <select id="period-sel" onchange="renderRoster()">
+                <option value="1">Period 1</option><option value="2">Period 2</option><option value="3">Period 3</option><option value="4">Period 4</option><option value="5">Period 5</option><option value="6">Period 6</option><option value="7">Period 7</option><option value="8">Period 8</option>
             </select>
             <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">EXPORT GRID REPORT (CSV)</button>
+            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD CSV REPORT</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbxo3yyn8DOnF7d07Z3OEPSnjkx01zPs8RSn3fRstjU28998OQ0JMNDBQ9W2rMWLjQEFgg/exec";
-        let cachedRoster = [];
+        const API = "https://script.google.com/macros/s/AKfycbzNCEL9DDd1x97znR7eLnNstfbfkF2NVgn_e54cmkHSdXhjqiYnC7zswJaPZNo0-HILiA/exec";
+        let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 
         async function initApp() {
-            const u = sessionStorage.getItem('u_email');
-            if(!u) return;
-            document.getElementById('auth-card').classList.add('hidden');
+            if(!sessionStorage.getItem('u_email')) return;
+            toggleCard('main-ui');
             document.getElementById('nav-ui').classList.remove('hidden');
-            document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
-            fetchRoster();
+            fetchData();
         }
 
         async function login() {
-            const e = document.getElementById('l-email').value.toLowerCase();
-            const p = document.getElementById('l-pass').value;
+            const e = document.getElementById('l-email').value.toLowerCase(), p = document.getElementById('l-pass').value;
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
             if((await res.text()) === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-            else toast("Denied");
+            else toast("Login Denied");
         }
 
-        async function fetchRoster() { const res = await fetch(`${API}?action=getRoster`); cachedRoster = await res.json(); renderRoster(); }
+        async function sendOTP() {
+            toast("Sending OTP...");
+            const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:document.getElementById('r-email').value})});
+            liveOTP = await res.text();
+            document.getElementById('otp-area').classList.remove('hidden');
+            document.getElementById('otp-btn').classList.add('hidden');
+            toast("Check Email!");
+        }
+
+        async function verifyAndReq() {
+            if(document.getElementById('r-otp').value !== liveOTP) return toast("Invalid OTP");
+            await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
+            toast("Requested! Wait for Admin.");
+            location.reload();
+        }
+
+        async function recover() {
+            const res = await fetch(`${API}?action=forgot&email=${document.getElementById('f-email').value}&pin=${document.getElementById('f-pin').value}`);
+            alert(await res.text());
+        }
+
+        async function fetchData() {
+            try {
+                const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
+                cachedRoster = await r.json(); 
+                attendanceLogs = await a.json(); 
+                renderRoster();
+            } catch(e) { toast("Syncing..."); }
+        }
 
         function renderRoster() {
-            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
+            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value, d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value;
             const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s).sort((a,b) => a[1] - b[1]);
-            document.getElementById('att-list').innerHTML = filtered.map(x => `
-                <div class="student-item">
-                    <b>${x[1]}. ${x[0]}</b>
+            document.getElementById('att-list').innerHTML = filtered.map(st => {
+                const log = attendanceLogs.find(l => l[0].includes(d) && l[1] == p && l[2] == st[1]);
+                return `<div class="student-item">
+                    <b>${st[1]}. ${st[0]}</b> ${log ? `<span style="color:var(--gold); font-weight:900;">(${log[6]})</span>`:''}
                     <div style="display:flex; gap:8px;">
-                        <button style="background:var(--gold); width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','P')">P</button>
-                        <button style="background:var(--red); width:45px; height:45px; border-radius:10px; font-weight:800;" onclick="mark('${x[0]}','${x[1]}','A')">A</button>
+                        <button style="background:var(--gold); width:40px; height:40px; border-radius:10px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button>
+                        <button style="background:var(--red); width:40px; height:40px; border-radius:10px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
                     </div>
-                </div>`).join('');
+                </div>`;
+            }).join('') || "Empty Room";
         }
 
         function mark(n, r, s) {
+            const d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value;
             toast(`${n}: ${s}`);
-            fetch(API, { method:"POST", mode:"no-cors", body:JSON.stringify({ 
-                action:"markAttendance", date:document.getElementById('att-date').value, 
-                name:n, roll:r, status:s, class:document.getElementById('sel-class').value, 
-                section:document.getElementById('sel-sec').value, period:document.getElementById('period-sel').value, 
-                userEmail:sessionStorage.getItem('u_email') 
-            })});
+            attendanceLogs.push([d, p, r, n, '', '', s]); renderRoster();
+            fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({action:"markAttendance", date:d, name:n, roll:r, status:s, class:document.getElementById('sel-class').value, section:document.getElementById('sel-sec').value, period:p, userEmail:sessionStorage.getItem('u_email')})});
         }
 
         async function addStudent() {
             const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
-            if(!n || !r) return toast("Missing Info!");
-            toast(`Adding ${n}...`);
             cachedRoster.push([n, r, c, s]); renderRoster();
-            await fetch(API, { method:"POST", body:JSON.stringify({ action:"addStudent", name:n, roll:r, class:c, section:s })});
+            await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
             document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
         }
 
         async function downloadReport() {
-            toast("Generating Grid Report...");
-            const res = await fetch(`${API}?action=getReport`);
-            const raw = await res.json();
+            toast("Downloading...");
             const date = document.getElementById('att-date').value;
-            
-            let csv = "Date,Roll,Name,Class,Sec,P1,P2,P3,P4,P5,P6,P7,P8\n";
-            const dayData = raw.filter(r => r[0].includes(date));
+            const res = await fetch(`${API}?action=getReport`);
+            const data = await res.json();
+            const dayData = data.filter(row => row[0].includes(date));
             const uniqueRolls = [...new Set(dayData.map(r => r[2]))];
-            
+
+            let csv = "Roll,Name,Class,Sec,P1,P2,P3,P4,P5,P6,P7,P8\n";
             uniqueRolls.forEach(roll => {
                 const s = dayData.find(r => r[2] == roll);
-                let row = `${date},${roll},${s[3]},${s[4]},${s[5]}`;
+                let row = `${roll},${s[3]},${s[4]},${s[5]}`;
                 for(let p=1; p<=8; p++) {
-                    const found = dayData.find(r => r[2] == roll && r[1] == p);
-                    row += `,${found ? found[6] : '-'}`;
+                    const f = dayData.find(r => r[2] == roll && r[1] == p);
+                    row += `,${f ? f[6] : '-'}`;
                 }
                 csv += row + "\n";
             });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = `Attendance_Grid_${date}.csv`;
-            a.click();
+            const blob = new Blob([csv], {type:'text/csv'});
+            const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = `Attendance_${date}.csv`; a.click();
         }
 
         function logout() { sessionStorage.clear(); location.reload(); }
