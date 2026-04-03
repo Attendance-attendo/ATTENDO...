@@ -109,7 +109,7 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbywQFKYuoryb6CoInM99Kmf6KFQTzEVwVf_CY-Y5jFC5E2dDeCZK0toCU-vfLFWK5BH/exec";
+        const API = "https://script.google.com/macros/s/AKfycbwF5ilmIao-HgzgSREks5-JqBNsuFEOpgKtEIIQzSf4fu06e2E8aOdnlyv-nB0ipluZqw/exec";
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
@@ -136,15 +136,11 @@
         async function loadPending() {
             const res = await fetch(`${API}?action=getPending&email=${ADMIN}`);
             const data = await res.json();
-            document.getElementById('pending-list').innerHTML = data.map(u => `
-                <div class="student-item">
-                    <div><b>${u[1]}</b><br>${u[0]}</div>
-                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:35px; font-size:10px;">GRANT</button>
-                </div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No Requests.</p>";
+            document.getElementById('pending-list').innerHTML = data.map(u => `<div class="student-item"><div><b>${u[1]}</b><br>${u[0]}</div><button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:35px; font-size:10px;">GRANT</button></div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No Requests.</p>";
         }
 
         async function approveUser(email) {
-            toast("Granting Access...");
+            toast("Granting...");
             await fetch(API, {method:"POST", body:JSON.stringify({ action:"approveUser", adminEmail:ADMIN, targetEmail:email }) });
             loadPending();
         }
@@ -168,7 +164,7 @@
                         <button style="background:var(--red); width:40px; height:40px; border-radius:10px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
                     </div>
                 </div>`;
-            }).join('') || "<p style='opacity:0.5;'>No students found here.</p>";
+            }).join('') || "<p style='opacity:0.5;'>Empty.</p>";
         }
 
         function mark(n, r, s) {
@@ -187,13 +183,12 @@
         }
 
         async function downloadReport() {
-            toast("Filtering...");
             const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
             const res = await fetch(`${API}?action=getReport`);
             const data = await res.json();
             const filtered = data.filter(r => r[0].includes(d) && r[4] == c && r[5] == s);
             if(filtered.length === 0) return toast("No data!");
-            let csv = `Attendance: ${c} ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
+            let csv = `Attendance Report: ${c} - ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
             const rolls = [...new Set(filtered.map(r => r[2]))].sort((a,b)=>a-b);
             rolls.forEach(roll => {
                 const info = filtered.find(r => r[2] == roll);
@@ -205,7 +200,7 @@
                 csv += row + "\n";
             });
             const a = document.createElement('a'); a.href = window.URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-            a.download = `Report_${c}_${s}_${d}.csv`; a.click();
+            a.download = `Attendance_${c}_${s}_${d}.csv`; a.click();
         }
 
         async function sendOTP() {
