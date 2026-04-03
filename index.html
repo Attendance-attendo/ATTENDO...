@@ -28,7 +28,7 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;"></div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;">PRO SESSION</div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
@@ -109,7 +109,7 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyGxythL4S_4diyEubgeOY_qJMFnJjKKQ-GdBUT_le61u0mcT8K02goMsFnDY_IR2-Oow/exec";
+        const API = "https://script.google.com/macros/s/AKfycbywQFKYuoryb6CoInM99Kmf6KFQTzEVwVf_CY-Y5jFC5E2dDeCZK0toCU-vfLFWK5BH/exec";
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
@@ -172,33 +172,32 @@
         }
 
         function mark(n, r, s) {
-            const d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value;
-            const c = document.getElementById('sel-class').value, sec = document.getElementById('sel-sec').value;
+            const d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value, c = document.getElementById('sel-class').value, sec = document.getElementById('sel-sec').value;
             toast(`${n}: ${s}`);
             attendanceLogs.push([d, p, r, n, c, sec, s]); renderRoster();
             fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({action:"markAttendance", date:d, name:n, roll:r, status:s, class:c, section:sec, period:p, userEmail:sessionStorage.getItem('u_email')})});
         }
 
         async function addStudent() {
-            const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value;
-            const c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
-            if(!n || !r) return toast("Missing Info");
+            const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
+            if(!n || !r) return toast("Enter Details");
             cachedRoster.push([n, r, c, s]); renderRoster();
             await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
             document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
         }
 
         async function downloadReport() {
-            const date = document.getElementById('att-date').value, selC = document.getElementById('sel-class').value, selS = document.getElementById('sel-sec').value;
+            toast("Filtering...");
+            const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
             const res = await fetch(`${API}?action=getReport`);
             const data = await res.json();
-            const filtered = data.filter(row => row[0].includes(date) && row[4] == selC && row[5] == selS);
+            const filtered = data.filter(r => r[0].includes(d) && r[4] == c && r[5] == s);
             if(filtered.length === 0) return toast("No data!");
-            let csv = `Attendance: ${selC} ${selS} (${date})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
+            let csv = `Attendance: ${c} ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
             const rolls = [...new Set(filtered.map(r => r[2]))].sort((a,b)=>a-b);
             rolls.forEach(roll => {
-                const s = filtered.find(r => r[2] == roll);
-                let row = `${roll},${s[3]}`;
+                const info = filtered.find(r => r[2] == roll);
+                let row = `${roll},${info[3]}`;
                 for(let p=1; p<=8; p++) {
                     const f = filtered.find(r => r[2] == roll && r[1] == p);
                     row += `,${f ? f[6] : '-'}`;
@@ -206,11 +205,11 @@
                 csv += row + "\n";
             });
             const a = document.createElement('a'); a.href = window.URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-            a.download = `Report_${selC}_${selS}_${date}.csv`; a.click();
+            a.download = `Report_${c}_${s}_${d}.csv`; a.click();
         }
 
         async function sendOTP() {
-            toast("Sending OTP...");
+            toast("Sending...");
             const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:document.getElementById('r-email').value})});
             liveOTP = await res.text();
             document.getElementById('otp-area').classList.remove('hidden'); document.getElementById('otp-btn').classList.add('hidden');
