@@ -20,6 +20,7 @@
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        .link-text { color: var(--gold); font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; font-weight: 700; }
     </style>
 </head>
 <body onload="initApp()">
@@ -39,6 +40,32 @@
         <input type="text" id="l-email" placeholder="Email Address">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
+        <div style="display:flex; justify-content:space-around;">
+            <span class="link-text" onclick="toggleCard('reg-card')">CREATE ACCOUNT</span>
+            <span class="link-text" onclick="toggleCard('forgot-card')">FORGOT PASSWORD</span>
+        </div>
+    </div>
+
+    <div id="reg-card" class="card hidden">
+        <h3>Join Attendo</h3>
+        <input type="text" id="r-name" placeholder="Full Name">
+        <input type="text" id="r-email" placeholder="Email Address">
+        <input type="password" id="r-pass" placeholder="Password">
+        <input type="number" id="r-pin" placeholder="Recovery PIN (4 Digits)">
+        <button onclick="sendOTP()" id="otp-btn">SEND OTP</button>
+        <div id="otp-area" class="hidden">
+            <input type="number" id="r-otp" placeholder="Enter OTP">
+            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
+        </div>
+        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
+    </div>
+
+    <div id="forgot-card" class="card hidden">
+        <h3>Recovery</h3>
+        <input type="text" id="f-email" placeholder="Email Address">
+        <input type="number" id="f-pin" placeholder="4-Digit PIN">
+        <button onclick="recover()" class="btn-gold">SHOW PASSWORD</button>
+        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
@@ -78,17 +105,21 @@
     <script>
         const API = "https://script.google.com/macros/s/AKfycbxWRCxvxsAUdVS__m0_Db7cGtj7fkZ-6RHhMcfMDtiV-vxkYX-6MyV57L3k03Ys75LMBA/exec";
         const ADMIN = "yuvansood1234@gmail.com";
-        let cachedRoster = [], attendanceLogs = [];
+        let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function toggleCard(id) { 
+            document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); 
+            document.getElementById(id).classList.remove('hidden'); 
+        }
 
         async function initApp() {
             const u = sessionStorage.getItem('u_email');
             if(!u) {
-                document.getElementById('auth-card').classList.remove('hidden');
+                toggleCard('auth-card');
                 return;
             }
-            document.getElementById('main-ui').classList.remove('hidden');
+            toggleCard('main-ui');
             document.getElementById('nav-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
             if(u.toLowerCase() === ADMIN.toLowerCase()) {
@@ -100,11 +131,36 @@
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
+            if(!e || !p) return toast("Enter Login Info");
             toast("Verifying...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
             const status = await res.text();
             if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
             else toast("Invalid Login");
+        }
+
+        async function sendOTP() {
+            const e = document.getElementById('r-email').value;
+            if(!e) return toast("Enter Email");
+            toast("Sending OTP...");
+            const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:e})});
+            liveOTP = (await res.text()).trim();
+            document.getElementById('otp-area').classList.remove('hidden');
+            document.getElementById('otp-btn').classList.add('hidden');
+            toast("OTP Sent!");
+        }
+
+        async function verifyAndReq() {
+            if(document.getElementById('r-otp').value !== liveOTP) return toast("Wrong OTP");
+            toast("Requesting...");
+            await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
+            toast("Request Sent!"); location.reload();
+        }
+
+        async function recover() {
+            const e = document.getElementById('f-email').value, p = document.getElementById('f-pin').value;
+            const res = await fetch(`${API}?action=forgot&email=${e}&pin=${p}`);
+            alert(await res.text());
         }
 
         async function fetchData() {
