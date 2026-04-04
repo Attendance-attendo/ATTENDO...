@@ -21,9 +21,9 @@
         .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); text-align: center; line-height: 1; }
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
         input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
-        button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; font-weight: 800; }
+        button { background: var(--red); border: none; cursor: pointer; font-weight: 800; }
         .btn-gold { background: var(--gold); color: black; }
-        .btn-install { background: #10b981; color: white; padding: 8px 15px; font-size: 11px; width: auto; margin: 10px auto; border-radius: 50px; display: none; }
+        .btn-install { background: #10b981; color: white; padding: 10px 20px; font-size: 12px; width: auto; margin: 15px auto; border-radius: 50px; display: none; border: none; }
         .hidden { display: none !important; }
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
@@ -35,14 +35,14 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">LIVE SESSION</div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;">  </div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
     <div class="brand-box">
         <h1>ATTENDO</h1>
         <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">BY YUVAN</p>
-        <button id="installBtn" class="btn-install" onclick="installApp()">📥 INSTALL APP</button>
+        <button id="installBtn" class="btn-install" onclick="installApp()">INSTALL APP</button>
     </div>
 
     <div id="auth-card" class="card hidden">
@@ -66,7 +66,7 @@
             <input type="number" id="r-otp" placeholder="Enter OTP">
             <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
         </div>
-        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
+        <span class="link-text" onclick="toggleCard('auth-card')">BACK TO LOGIN</span>
     </div>
 
     <div id="forgot-card" class="card hidden">
@@ -74,7 +74,7 @@
         <input type="text" id="f-email" placeholder="Email Address">
         <input type="number" id="f-pin" placeholder="4-Digit PIN">
         <button onclick="recover()" class="btn-gold">SHOW PASSWORD</button>
-        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
+        <span class="link-text" onclick="toggleCard('auth-card')">BACK TO LOGIN</span>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
@@ -116,11 +116,12 @@
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [], deferredPrompt;
 
-        // --- PWA INSTALL LOGIC ---
+        // PWA Install Logic
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            document.getElementById('installBtn').style.display = 'block';
+            const btn = document.getElementById('installBtn');
+            if(btn) btn.style.display = 'block';
         });
 
         async function installApp() {
@@ -130,32 +131,51 @@
                 if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
                 deferredPrompt = null;
             } else {
-                toast("On iPhone: Tap 'Share' then 'Add to Home Screen'");
+                alert("To install on Laptop: Click the 'Install' icon in the address bar.\nOn iPhone: Use 'Add to Home Screen' in Safari.");
             }
         }
 
-        // --- APP LOGIC ---
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        
+        function toggleCard(id) { 
+            document.getElementById('auth-card').classList.add('hidden');
+            document.getElementById('reg-card').classList.add('hidden');
+            document.getElementById('forgot-card').classList.add('hidden');
+            document.getElementById('main-ui').classList.add('hidden');
+            const target = document.getElementById(id);
+            if(target) target.classList.remove('hidden');
+        }
 
         async function initApp() {
-            const u = sessionStorage.getItem('u_email');
-            if(!u) { toggleCard('auth-card'); return; }
-            toggleCard('main-ui');
-            document.getElementById('nav-ui').classList.remove('hidden');
-            document.getElementById('att-date').valueAsDate = new Date();
-            if(u.toLowerCase() === ADMIN.toLowerCase()) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
-            fetchData();
+            try {
+                const u = sessionStorage.getItem('u_email');
+                if(!u) {
+                    toggleCard('auth-card');
+                    return;
+                }
+                document.getElementById('main-ui').classList.remove('hidden');
+                document.getElementById('nav-ui').classList.remove('hidden');
+                document.getElementById('att-date').valueAsDate = new Date();
+                if(u.toLowerCase() === ADMIN.toLowerCase()) {
+                    document.getElementById('admin-tools').classList.remove('hidden');
+                    loadPending();
+                }
+                fetchData();
+            } catch(e) {
+                toggleCard('auth-card');
+            }
         }
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
             if(!e || !p) return toast("Enter Login Info");
             toast("Verifying...");
-            const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-            const status = await res.text();
-            if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-            else toast("Invalid Login");
+            try {
+                const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
+                const status = await res.text();
+                if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
+                else toast("Invalid Login");
+            } catch(err) { toast("Connection Error"); }
         }
 
         async function sendOTP() {
@@ -190,11 +210,17 @@
 
         function renderRoster() {
             const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
-            const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s);
+            const filtered = (cachedRoster || []).filter(x => x[2] == c && x[3] == s);
             document.getElementById('att-list').innerHTML = filtered.map(st => {
                 const d = document.getElementById('att-date').value;
-                const log = attendanceLogs.find(l => l[0].includes(d) && l[2] == st[1]);
-                return `<div class="student-item"><b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}<div style="display:flex; gap:8px;"><button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button><button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button></div></div>`;
+                const log = (attendanceLogs || []).find(l => l[0].includes(d) && l[2] == st[1]);
+                return `<div class="student-item">
+                    <b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}
+                    <div style="display:flex; gap:8px;">
+                        <button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button>
+                        <button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
+                    </div>
+                </div>`;
             }).join('') || "No Students Found";
         }
 
