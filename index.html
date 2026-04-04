@@ -17,26 +17,21 @@
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        /* Hide Install Button if already in App Mode */
         @media (display-mode: standalone) { #installBtn { display: none !important; } }
-        @media (display-mode: fullscreen) { #installBtn { display: none !important; } }
-
         .top-nav { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; }
         .logout-btn { color: var(--red); font-weight: 800; cursor: pointer; border: 1.5px solid var(--red); padding: 5px 12px; border-radius: 10px; font-size: 11px; text-transform: uppercase; }
         .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); text-align: center; line-height: 1; }
-        
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
         input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
-        button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; font-weight: 800; }
-        
+        button { background: var(--red); border: none; cursor: pointer; font-weight: 800; }
         .btn-gold { background: var(--gold); color: black; }
         .btn-install { background: #10b981; color: white; padding: 10px 20px; font-size: 12px; width: auto; margin: 15px auto; border-radius: 50px; display: none; border: none; }
         .hidden { display: none !important; }
-        
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
         .link-text { color: var(--gold); font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; font-weight: 700; }
+        .grid-row { display: flex; gap: 8px; }
     </style>
 </head>
 <body onload="initApp()">
@@ -95,25 +90,32 @@
             <h4 style="color:var(--gold); margin:0;">Add Student</h4>
             <input type="text" id="st-name" placeholder="Full Name">
             <input type="number" id="st-roll" placeholder="Roll Number">
-            <div style="display:flex; gap:8px;">
+            <div class="grid-row">
                 <select id="add-class">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option>
+                    <option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
+                    <option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
-                <select id="add-sec"><option>Sec A</option><option>Sec B</option></select>
+                <select id="add-sec"><option>Sec A</option><option>Sec B</option><option>Sec C</option></select>
             </div>
             <button onclick="addStudent()" class="btn-gold">SAVE STUDENT</button>
         </div>
 
         <div class="card">
             <input type="date" id="att-date" onchange="fetchData()">
-            <div style="display:flex; gap:8px;">
+            <div class="grid-row">
                 <select id="sel-class" onchange="renderRoster()">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
-                    <option>Class 9</option><option>Class 10</option>
+                    <option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
+                    <option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
-                <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
+                <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option><option>Sec C</option></select>
             </div>
+            <select id="period-sel" onchange="renderRoster()">
+                <option value="1">Period 1</option><option value="2">Period 2</option><option value="3">Period 3</option>
+                <option value="4">Period 4</option><option value="5">Period 5</option><option value="6">Period 6</option>
+                <option value="7">Period 7</option><option value="8">Period 8</option>
+            </select>
             <div id="att-list" style="margin-top:10px;"></div>
             <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD REPORT</button>
         </div>
@@ -124,15 +126,9 @@
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [], deferredPrompt;
 
-        // --- PWA LOGIC ---
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Check if not already in standalone mode
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                const btn = document.getElementById('installBtn');
-                if(btn) btn.style.display = 'block';
-            }
+            e.preventDefault(); deferredPrompt = e;
+            if (!window.matchMedia('(display-mode: standalone)').matches) document.getElementById('installBtn').style.display = 'block';
         });
 
         async function installApp() {
@@ -141,39 +137,20 @@
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
                 deferredPrompt = null;
-            } else {
-                alert("iPhone: Tap 'Share' then 'Add to Home Screen'.\nLaptop: Check the Address Bar for the Install icon.");
-            }
+            } else { alert("To Install: Use the browser menu 'Add to Home Screen' or the icon in the address bar."); }
         }
 
-        // --- CORE APP LOGIC ---
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        
-        function toggleCard(id) { 
-            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-            document.getElementById('main-ui').classList.add('hidden');
-            const target = document.getElementById(id);
-            if(target) target.classList.remove('hidden');
-        }
+        function toggleCard(id) { document.querySelectorAll('.card').forEach(c => c.classList.add('hidden')); document.getElementById('main-ui').classList.add('hidden'); document.getElementById(id).classList.remove('hidden'); }
 
         async function initApp() {
-            // Instant hide install button if already in App Mode
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                const btn = document.getElementById('installBtn');
-                if(btn) btn.style.display = 'none';
-            }
-
+            if (window.matchMedia('(display-mode: standalone)').matches) document.getElementById('installBtn').style.display = 'none';
             const u = sessionStorage.getItem('u_email');
             if(!u) { toggleCard('auth-card'); return; }
-            
             document.getElementById('main-ui').classList.remove('hidden');
             document.getElementById('nav-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
-            
-            if(u.toLowerCase() === ADMIN.toLowerCase()) {
-                document.getElementById('admin-tools').classList.remove('hidden');
-                loadPending();
-            }
+            if(u.toLowerCase() === ADMIN.toLowerCase()) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
             fetchData();
         }
 
@@ -181,18 +158,15 @@
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
             if(!e || !p) return toast("Enter Info");
             toast("Verifying...");
-            try {
-                const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-                const status = await res.text();
-                if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-                else toast("Invalid Login");
-            } catch(err) { toast("Connection Error"); }
+            const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
+            const status = await res.text();
+            if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
+            else toast("Invalid Login");
         }
 
         async function sendOTP() {
             const e = document.getElementById('r-email').value;
-            if(!e) return toast("Enter Email");
-            toast("Sending OTP...");
+            toast("Sending...");
             const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:e})});
             liveOTP = (await res.text()).trim();
             document.getElementById('otp-area').classList.remove('hidden');
@@ -203,7 +177,7 @@
         async function verifyAndReq() {
             if(document.getElementById('r-otp').value !== liveOTP) return toast("Wrong OTP");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
-            toast("Request Sent!"); location.reload();
+            toast("Requested!"); location.reload();
         }
 
         async function recover() {
@@ -216,34 +190,26 @@
             try {
                 const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
                 cachedRoster = await r.json(); attendanceLogs = await a.json(); renderRoster();
-            } catch(e) { console.log("Fetching data..."); }
+            } catch(e) { console.log("Sync..."); }
         }
 
         function renderRoster() {
-            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
+            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value, p = document.getElementById('period-sel').value, d = document.getElementById('att-date').value;
             const filtered = (cachedRoster || []).filter(x => x[2] == c && x[3] == s);
             document.getElementById('att-list').innerHTML = filtered.map(st => {
-                const d = document.getElementById('att-date').value;
-                const log = (attendanceLogs || []).find(l => l[0].includes(d) && l[2] == st[1]);
-                return `<div class="student-item">
-                    <b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}
-                    <div style="display:flex; gap:8px;">
-                        <button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button>
-                        <button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
-                    </div>
-                </div>`;
+                const log = (attendanceLogs || []).find(l => l[0].includes(d) && l[1] == p && l[2] == st[1]);
+                return `<div class="student-item"><b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}<div style="display:flex; gap:8px;"><button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button><button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button></div></div>`;
             }).join('') || "No Students Found";
         }
 
         function mark(n, r, s) {
-            const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, sec = document.getElementById('sel-sec').value;
+            const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, sec = document.getElementById('sel-sec').value, p = document.getElementById('period-sel').value;
             toast(`Marked ${s}`);
-            fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({action:"markAttendance", date:d, name:n, roll:r, status:s, class:c, section:sec, userEmail:sessionStorage.getItem('u_email')})});
+            fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({action:"markAttendance", date:d, name:n, roll:r, status:s, class:c, section:sec, period:p, userEmail:sessionStorage.getItem('u_email')})});
         }
 
         async function addStudent() {
             const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
-            if(!n || !r) return toast("Missing Name/Roll");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
             location.reload();
         }
