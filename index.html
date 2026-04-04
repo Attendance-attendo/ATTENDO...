@@ -38,14 +38,14 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">LIVE SESSION</div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;"></div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
     <div class="brand-box">
         <h1>ATTENDO</h1>
         <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">BY YUVAN</p>
-        <button id="installBtn" class="btn-install" onclick="installApp()">📥 INSTALL APP</button>
+        <button id="installBtn" class="btn-install" onclick="installApp()">INSTALL APP</button>
     </div>
 
     <div id="auth-card" class="card hidden">
@@ -92,11 +92,10 @@
             <input type="number" id="st-roll" placeholder="Roll Number">
             <div class="grid-row">
                 <select id="add-class">
-                    <option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
-                    <option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    </option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
                     <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
-                <select id="add-sec"><option>Sec A</option><option>Sec B</option><option>Sec C</option></select>
+                <select id="add-sec"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <button onclick="addStudent()" class="btn-gold">SAVE STUDENT</button>
         </div>
@@ -105,8 +104,7 @@
             <input type="date" id="att-date" onchange="fetchData()">
             <div class="grid-row">
                 <select id="sel-class" onchange="renderRoster()">
-                    <option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
-                    <option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    </option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
                     <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
                 </select>
                 <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option><option>Sec C</option></select>
