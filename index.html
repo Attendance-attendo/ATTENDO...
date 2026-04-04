@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Attendo | Yuvan</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="image-removebg-preview.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
@@ -16,6 +23,7 @@
         input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; font-weight: 800; }
         .btn-gold { background: var(--gold); color: black; }
+        .btn-install { background: #10b981; color: white; padding: 8px 15px; font-size: 11px; width: auto; margin: 10px auto; border-radius: 50px; display: none; }
         .hidden { display: none !important; }
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
@@ -33,7 +41,8 @@
 
     <div class="brand-box">
         <h1>ATTENDO</h1>
-        <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">CREATED BY YUVAN</p>
+        <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">BY YUVAN</p>
+        <button id="installBtn" class="btn-install" onclick="installApp()">📥 INSTALL APP</button>
     </div>
 
     <div id="auth-card" class="card hidden">
@@ -105,53 +114,54 @@
     <script>
         const API = "https://script.google.com/macros/s/AKfycbxWRCxvxsAUdVS__m0_Db7cGtj7fkZ-6RHhMcfMDtiV-vxkYX-6MyV57L3k03Ys75LMBA/exec";
         const ADMIN = "yuvansood1234@gmail.com";
-        let liveOTP = null, cachedRoster = [], attendanceLogs = [];
+        let liveOTP = null, cachedRoster = [], attendanceLogs = [], deferredPrompt;
 
-        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        
-        function toggleCard(id) { 
-            document.getElementById('auth-card').classList.add('hidden');
-            document.getElementById('reg-card').classList.add('hidden');
-            document.getElementById('forgot-card').classList.add('hidden');
-            document.getElementById('main-ui').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden'); 
+        // --- PWA INSTALL LOGIC ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'block';
+        });
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
+                deferredPrompt = null;
+            } else {
+                toast("On iPhone: Tap 'Share' then 'Add to Home Screen'");
+            }
         }
+
+        // --- APP LOGIC ---
+        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
 
         async function initApp() {
             const u = sessionStorage.getItem('u_email');
-            if(!u) {
-                toggleCard('auth-card');
-                return;
-            }
-            
-            // If user exists, show main UI
-            document.getElementById('main-ui').classList.remove('hidden');
+            if(!u) { toggleCard('auth-card'); return; }
+            toggleCard('main-ui');
             document.getElementById('nav-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
-            
-            if(u.toLowerCase() === ADMIN.toLowerCase()) {
-                document.getElementById('admin-tools').classList.remove('hidden');
-                loadPending();
-            }
+            if(u.toLowerCase() === ADMIN.toLowerCase()) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
             fetchData();
         }
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
-            if(!e || !p) return toast("Enter Info");
+            if(!e || !p) return toast("Enter Login Info");
             toast("Verifying...");
-            try {
-                const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-                const status = await res.text();
-                if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-                else toast("Invalid Login");
-            } catch(err) { toast("Connection Error"); }
+            const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
+            const status = await res.text();
+            if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
+            else toast("Invalid Login");
         }
 
         async function sendOTP() {
             const e = document.getElementById('r-email').value;
             if(!e) return toast("Enter Email");
-            toast("Sending...");
+            toast("Sending OTP...");
             const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:e})});
             liveOTP = (await res.text()).trim();
             document.getElementById('otp-area').classList.remove('hidden');
@@ -162,7 +172,7 @@
         async function verifyAndReq() {
             if(document.getElementById('r-otp').value !== liveOTP) return toast("Wrong OTP");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
-            toast("Requested!"); location.reload();
+            toast("Request Sent!"); location.reload();
         }
 
         async function recover() {
@@ -175,7 +185,7 @@
             try {
                 const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
                 cachedRoster = await r.json(); attendanceLogs = await a.json(); renderRoster();
-            } catch(e) { console.log("Fetching..."); }
+            } catch(e) { console.log("Syncing..."); }
         }
 
         function renderRoster() {
@@ -184,13 +194,7 @@
             document.getElementById('att-list').innerHTML = filtered.map(st => {
                 const d = document.getElementById('att-date').value;
                 const log = attendanceLogs.find(l => l[0].includes(d) && l[2] == st[1]);
-                return `<div class="student-item">
-                    <b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}
-                    <div style="display:flex; gap:8px;">
-                        <button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button>
-                        <button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
-                    </div>
-                </div>`;
+                return `<div class="student-item"><b>${st[1]}. ${st[0]}</b> ${log ? `(${log[6]})`:''}<div style="display:flex; gap:8px;"><button style="background:var(--gold); width:40px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button><button style="background:var(--red); width:40px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button></div></div>`;
             }).join('') || "No Students Found";
         }
 
