@@ -27,7 +27,7 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">LIVE SESSION</div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;"></div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
@@ -52,19 +52,19 @@
         <input type="text" id="r-email" placeholder="Email Address">
         <input type="password" id="r-pass" placeholder="Password">
         <input type="number" id="r-pin" placeholder="Recovery PIN (4 Digits)">
-        <button onclick="sendOTP()" id="otp-btn">SEND OTP</button>
+        <button onclick="sendOTP()" id="otp-btn">Send OTP</button>
         <div id="otp-area" class="hidden">
             <input type="number" id="r-otp" placeholder="Enter OTP">
-            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
+            <button onclick="verifyAndReq()" class="btn-gold">Verify & join</button>
         </div>
-        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
+        <span class="link-text" onclick="location.reload()">Back to login</span>
     </div>
 
     <div id="forgot-card" class="card hidden">
         <h3>Recovery</h3>
         <input type="text" id="f-email" placeholder="Email Address">
         <input type="number" id="f-pin" placeholder="4-Digit PIN">
-        <button onclick="recover()" class="btn-gold">SHOW PASSWORD</button>
+        <button onclick="recover()" class="btn-gold">Show Password</button>
         <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
     </div>
 
@@ -98,7 +98,7 @@
                 <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD REPORT</button>
+            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">Download report</button>
         </div>
     </div>
 
