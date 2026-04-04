@@ -28,7 +28,7 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">PRO SESSION</div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;">PRO MASTER SESSION</div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
@@ -86,7 +86,7 @@
                 </select>
                 <select id="add-sec"><option>Sec A</option><option>Sec B</option></select>
             </div>
-            <button onclick="addStudent()" class="btn-gold">SAVE</button>
+            <button onclick="addStudent()" class="btn-gold">SAVE TO SYSTEM</button>
         </div>
 
         <div class="card">
@@ -104,12 +104,12 @@
                 <option value="7">Period 7</option><option value="8">Period 8</option>
             </select>
             <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD THIS SECTION ONLY</button>
+            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD THIS SECTION REPORT</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbwF5ilmIao-HgzgSREks5-JqBNsuFEOpgKtEIIQzSf4fu06e2E8aOdnlyv-nB0ipluZqw/exec";
+        const API = "https://script.google.com/macros/s/AKfycbxWRCxvxsAUdVS__m0_Db7cGtj7fkZ-6RHhMcfMDtiV-vxkYX-6MyV57L3k03Ys75LMBA/exec";
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
@@ -122,25 +122,32 @@
             toggleCard('main-ui');
             document.getElementById('nav-ui').classList.remove('hidden');
             document.getElementById('att-date').valueAsDate = new Date();
-            if(u === ADMIN) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
+            if(u.toLowerCase() === ADMIN.toLowerCase()) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
             fetchData();
         }
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
+            if(!e || !p) return toast("Enter Login Info");
+            toast("Checking...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-            if((await res.text()).trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-            else toast("Login Denied");
+            const status = await res.text();
+            if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
+            else toast("Access Denied");
         }
 
         async function loadPending() {
             const res = await fetch(`${API}?action=getPending&email=${ADMIN}`);
             const data = await res.json();
-            document.getElementById('pending-list').innerHTML = data.map(u => `<div class="student-item"><div><b>${u[1]}</b><br>${u[0]}</div><button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:35px; font-size:10px;">GRANT</button></div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No Requests.</p>";
+            document.getElementById('pending-list').innerHTML = data.map(u => `
+                <div class="student-item">
+                    <div><b>${u[1]}</b><br>${u[0]}</div>
+                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:35px; font-size:10px;">GRANT</button>
+                </div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No Requests.</p>";
         }
 
         async function approveUser(email) {
-            toast("Granting...");
+            toast("Approving...");
             await fetch(API, {method:"POST", body:JSON.stringify({ action:"approveUser", adminEmail:ADMIN, targetEmail:email }) });
             loadPending();
         }
@@ -148,8 +155,10 @@
         async function fetchData() {
             try {
                 const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
-                cachedRoster = await r.json(); attendanceLogs = await a.json(); renderRoster();
-            } catch(e) { renderRoster(); }
+                cachedRoster = await r.json(); 
+                attendanceLogs = await a.json(); 
+                renderRoster();
+            } catch(e) { toast("Data Sync Failed"); }
         }
 
         function renderRoster() {
@@ -164,7 +173,7 @@
                         <button style="background:var(--red); width:40px; height:40px; border-radius:10px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
                     </div>
                 </div>`;
-            }).join('') || "<p style='opacity:0.5;'>Empty.</p>";
+            }).join('') || "<p style='opacity:0.5;'>No Students in this Section.</p>";
         }
 
         function mark(n, r, s) {
@@ -176,19 +185,20 @@
 
         async function addStudent() {
             const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
-            if(!n || !r) return toast("Enter Details");
+            if(!n || !r) return toast("Enter Name & Roll");
             cachedRoster.push([n, r, c, s]); renderRoster();
             await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
-            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = "";
+            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = ""; toast("Saved!");
         }
 
         async function downloadReport() {
+            toast("Preparing File...");
             const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
             const res = await fetch(`${API}?action=getReport`);
             const data = await res.json();
             const filtered = data.filter(r => r[0].includes(d) && r[4] == c && r[5] == s);
-            if(filtered.length === 0) return toast("No data!");
-            let csv = `Attendance Report: ${c} - ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
+            if(filtered.length === 0) return toast("No data to download!");
+            let csv = `Attendance: ${c} ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
             const rolls = [...new Set(filtered.map(r => r[2]))].sort((a,b)=>a-b);
             rolls.forEach(roll => {
                 const info = filtered.find(r => r[2] == roll);
@@ -204,20 +214,23 @@
         }
 
         async function sendOTP() {
-            toast("Sending...");
-            const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:document.getElementById('r-email').value})});
+            const e = document.getElementById('r-email').value;
+            if(!e) return toast("Enter Email");
+            toast("Sending OTP...");
+            const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:e})});
             liveOTP = await res.text();
-            document.getElementById('otp-area').classList.remove('hidden'); document.getElementById('otp-btn').classList.add('hidden');
+            document.getElementById('otp-area').classList.remove('hidden'); document.getElementById('otp-btn').classList.add('hidden'); toast("OTP Sent!");
         }
 
         async function verifyAndReq() {
             if(document.getElementById('r-otp').value !== liveOTP) return toast("Wrong OTP");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
-            toast("Requested!"); location.reload();
+            toast("Request Sent!"); location.reload();
         }
 
         async function recover() {
-            const res = await fetch(`${API}?action=forgot&email=${document.getElementById('f-email').value}&pin=${document.getElementById('f-pin').value}`);
+            const e = document.getElementById('f-email').value, p = document.getElementById('f-pin').value;
+            const res = await fetch(`${API}?action=forgot&email=${e}&pin=${p}`);
             alert(await res.text());
         }
 
