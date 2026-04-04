@@ -16,15 +16,23 @@
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        /* Hide Install Button if already in App Mode */
+        @media (display-mode: standalone) { #installBtn { display: none !important; } }
+        @media (display-mode: fullscreen) { #installBtn { display: none !important; } }
+
         .top-nav { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; }
         .logout-btn { color: var(--red); font-weight: 800; cursor: pointer; border: 1.5px solid var(--red); padding: 5px 12px; border-radius: 10px; font-size: 11px; text-transform: uppercase; }
         .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); text-align: center; line-height: 1; }
+        
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
         input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
-        button { background: var(--red); border: none; cursor: pointer; font-weight: 800; }
+        button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; font-weight: 800; }
+        
         .btn-gold { background: var(--gold); color: black; }
         .btn-install { background: #10b981; color: white; padding: 10px 20px; font-size: 12px; width: auto; margin: 15px auto; border-radius: 50px; display: none; border: none; }
         .hidden { display: none !important; }
+        
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
         #toast.show { visibility: visible; animation: pop 0.3s forwards; }
         .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
@@ -35,14 +43,14 @@
     <div id="toast">Ready</div>
 
     <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">  </div>
+        <div style="font-size:10px; color:var(--gold); font-weight:700;">LIVE SESSION</div>
         <div class="logout-btn" onclick="logout()">Logout</div>
     </div>
 
     <div class="brand-box">
         <h1>ATTENDO</h1>
         <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">BY YUVAN</p>
-        <button id="installBtn" class="btn-install" onclick="installApp()">INSTALL APP</button>
+        <button id="installBtn" class="btn-install" onclick="installApp()">📥 INSTALL APP</button>
     </div>
 
     <div id="auth-card" class="card hidden">
@@ -116,12 +124,15 @@
         const ADMIN = "yuvansood1234@gmail.com";
         let liveOTP = null, cachedRoster = [], attendanceLogs = [], deferredPrompt;
 
-        // PWA Install Logic
+        // --- PWA LOGIC ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            const btn = document.getElementById('installBtn');
-            if(btn) btn.style.display = 'block';
+            // Check if not already in standalone mode
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                const btn = document.getElementById('installBtn');
+                if(btn) btn.style.display = 'block';
+            }
         });
 
         async function installApp() {
@@ -131,44 +142,44 @@
                 if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
                 deferredPrompt = null;
             } else {
-                alert("To install on Laptop: Click the 'Install' icon in the address bar.\nOn iPhone: Use 'Add to Home Screen' in Safari.");
+                alert("iPhone: Tap 'Share' then 'Add to Home Screen'.\nLaptop: Check the Address Bar for the Install icon.");
             }
         }
 
+        // --- CORE APP LOGIC ---
         function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
         
         function toggleCard(id) { 
-            document.getElementById('auth-card').classList.add('hidden');
-            document.getElementById('reg-card').classList.add('hidden');
-            document.getElementById('forgot-card').classList.add('hidden');
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
             document.getElementById('main-ui').classList.add('hidden');
             const target = document.getElementById(id);
             if(target) target.classList.remove('hidden');
         }
 
         async function initApp() {
-            try {
-                const u = sessionStorage.getItem('u_email');
-                if(!u) {
-                    toggleCard('auth-card');
-                    return;
-                }
-                document.getElementById('main-ui').classList.remove('hidden');
-                document.getElementById('nav-ui').classList.remove('hidden');
-                document.getElementById('att-date').valueAsDate = new Date();
-                if(u.toLowerCase() === ADMIN.toLowerCase()) {
-                    document.getElementById('admin-tools').classList.remove('hidden');
-                    loadPending();
-                }
-                fetchData();
-            } catch(e) {
-                toggleCard('auth-card');
+            // Instant hide install button if already in App Mode
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                const btn = document.getElementById('installBtn');
+                if(btn) btn.style.display = 'none';
             }
+
+            const u = sessionStorage.getItem('u_email');
+            if(!u) { toggleCard('auth-card'); return; }
+            
+            document.getElementById('main-ui').classList.remove('hidden');
+            document.getElementById('nav-ui').classList.remove('hidden');
+            document.getElementById('att-date').valueAsDate = new Date();
+            
+            if(u.toLowerCase() === ADMIN.toLowerCase()) {
+                document.getElementById('admin-tools').classList.remove('hidden');
+                loadPending();
+            }
+            fetchData();
         }
 
         async function login() {
             const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
-            if(!e || !p) return toast("Enter Login Info");
+            if(!e || !p) return toast("Enter Info");
             toast("Verifying...");
             try {
                 const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
@@ -205,7 +216,7 @@
             try {
                 const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
                 cachedRoster = await r.json(); attendanceLogs = await a.json(); renderRoster();
-            } catch(e) { console.log("Syncing..."); }
+            } catch(e) { console.log("Fetching data..."); }
         }
 
         function renderRoster() {
@@ -232,6 +243,7 @@
 
         async function addStudent() {
             const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
+            if(!n || !r) return toast("Missing Name/Roll");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
             location.reload();
         }
