@@ -3,235 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Attendo | Yuvan</title>
+    <title>Attendo | Debug Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
-        * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .top-nav { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; }
-        .logout-btn { color: var(--red); font-weight: 800; cursor: pointer; border: 1.5px solid var(--red); padding: 5px 12px; border-radius: 10px; font-size: 11px; text-transform: uppercase; }
-        .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); text-align: center; line-height: 1; }
         .card { background: var(--card); border-radius: 28px; width: 100%; max-width: 420px; padding: 1.8rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
-        input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; outline: none; }
-        button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
-        .btn-gold { background: var(--gold); color: black; }
+        input, select, button { width: 100%; padding: 13px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; outline: none; }
+        button { background: var(--red); border: none; cursor: pointer; font-weight: 800; }
         .hidden { display: none !important; }
-        #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 9999; }
-        #toast.show { visibility: visible; animation: pop 0.3s forwards; }
-        @keyframes pop { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
-        .link-text { color: var(--gold); font-size: 11px; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; font-weight: 700; }
+        #debug-console { width: 100%; max-width: 400px; background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 10px; border-radius: 8px; border: 1px solid #333; margin: 10px 0; text-align: left; overflow-wrap: break-word; }
+        .brand-box h1 { margin: 0; font-size: 3.2rem; font-weight: 900; letter-spacing: -4px; color: var(--gold); text-align: center; }
     </style>
 </head>
 <body onload="initApp()">
-    <div id="toast">Ready</div>
-
-    <div id="nav-ui" class="top-nav hidden">
-        <div style="font-size:10px; color:var(--gold); font-weight:700;">PRO MASTER SESSION</div>
-        <div class="logout-btn" onclick="logout()">Logout</div>
-    </div>
-
     <div class="brand-box">
         <h1>ATTENDO</h1>
-        <p style="color:var(--gold); font-size:10px; margin-top:5px; letter-spacing:2px; font-weight:700;">CREATED BY YUVAN</p>
+        <p style="color:var(--gold); font-size:10px; margin-top:5px; text-align:center; font-weight:700;">SYSTEM STATUS CHECK</p>
     </div>
 
-    <div id="auth-card" class="card">
+    <div id="debug-console">Initializing System...</div>
+
+    <div id="auth-card" class="card hidden">
         <input type="text" id="l-email" placeholder="Email Address">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
-        <div style="display:flex; justify-content:space-around;">
-            <span class="link-text" onclick="toggleCard('reg-card')">CREATE ACCOUNT</span>
-            <span class="link-text" onclick="toggleCard('forgot-card')">FORGOT PASSWORD</span>
-        </div>
-    </div>
-
-    <div id="reg-card" class="card hidden">
-        <h3>Join Attendo</h3>
-        <input type="text" id="r-name" placeholder="Full Name">
-        <input type="text" id="r-email" placeholder="Email Address">
-        <input type="password" id="r-pass" placeholder="Password">
-        <input type="number" id="r-pin" placeholder="Recovery PIN (4 Digits)">
-        <button onclick="sendOTP()" id="otp-btn">SEND OTP</button>
-        <div id="otp-area" class="hidden">
-            <input type="number" id="r-otp" placeholder="Enter OTP">
-            <button onclick="verifyAndReq()" class="btn-gold">VERIFY & JOIN</button>
-        </div>
-        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
-    </div>
-
-    <div id="forgot-card" class="card hidden">
-        <h3>Recovery</h3>
-        <input type="text" id="f-email" placeholder="Email Address">
-        <input type="number" id="f-pin" placeholder="4-Digit PIN">
-        <button onclick="recover()" class="btn-gold">SHOW PASSWORD</button>
-        <span class="link-text" onclick="location.reload()">BACK TO LOGIN</span>
     </div>
 
     <div id="main-ui" class="hidden" style="width:100%; max-width:420px;">
-        <div id="admin-tools" class="card hidden" style="border: 2px solid var(--gold);">
-            <h4 style="color:var(--gold); margin:0;">GRANT ACCESS</h4>
-            <div id="pending-list" style="margin-top:10px;"></div>
-        </div>
-
         <div class="card">
-            <h4 style="color:var(--gold); margin:0;">Add Student</h4>
-            <input type="text" id="st-name" placeholder="Full Name">
-            <input type="number" id="st-roll" placeholder="Roll Number">
-            <div style="display:flex; gap:8px;">
-                <select id="add-class">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option>
-                    <option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="add-sec"><option>Sec A</option><option>Sec B</option></select>
-            </div>
-            <button onclick="addStudent()" class="btn-gold">SAVE TO SYSTEM</button>
-        </div>
-
-        <div class="card">
-            <input type="date" id="att-date" onchange="fetchData()">
-            <div style="display:flex; gap:8px;">
-                <select id="sel-class" onchange="renderRoster()">
-                    <option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option>
-                    <option>Class 10</option><option>Class 11</option><option>Class 12</option>
-                </select>
-                <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
-            </div>
-            <select id="period-sel" onchange="renderRoster()">
-                <option value="1">Period 1</option><option value="2">Period 2</option><option value="3">Period 3</option>
-                <option value="4">Period 4</option><option value="5">Period 5</option><option value="6">Period 6</option>
-                <option value="7">Period 7</option><option value="8">Period 8</option>
-            </select>
-            <div id="att-list" style="margin-top:10px;"></div>
-            <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD THIS SECTION REPORT</button>
+            <p style="color:var(--gold)">System Active</p>
+            <button onclick="logout()" style="background:#444">LOGOUT</button>
         </div>
     </div>
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycbxWRCxvxsAUdVS__m0_Db7cGtj7fkZ-6RHhMcfMDtiV-vxkYX-6MyV57L3k03Ys75LMBA/exec";
         const ADMIN = "yuvansood1234@gmail.com";
-        let liveOTP = null, cachedRoster = [], attendanceLogs = [];
 
-        function toast(m) { const t=document.getElementById("toast"); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        function toggleCard(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        function log(msg, color="#0f0") {
+            const console = document.getElementById('debug-console');
+            console.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
+            console.scrollTop = console.scrollHeight;
+        }
 
         async function initApp() {
+            log("Checking browser session...");
             const u = sessionStorage.getItem('u_email');
-            if(!u) return;
-            toggleCard('main-ui');
-            document.getElementById('nav-ui').classList.remove('hidden');
-            document.getElementById('att-date').valueAsDate = new Date();
-            if(u.toLowerCase() === ADMIN.toLowerCase()) { document.getElementById('admin-tools').classList.remove('hidden'); loadPending(); }
-            fetchData();
+            
+            log("Testing connection to Google Script...");
+            try {
+                const response = await fetch(`${API}?action=getRoster`);
+                if (response.ok) {
+                    log("Connection Successful (200 OK)");
+                    document.getElementById('debug-console').classList.add('hidden'); // Hide console if OK
+                } else {
+                    log(`Connection Error: ${response.status}`, "red");
+                }
+            } catch (e) {
+                log(`FATAL ERROR: Failed to reach Google Script.`, "red");
+                log(`REASON: ${e.message}`, "#ff0000");
+                log(`ACTION: Ensure Deployment is set to 'Anyone'.`, "#aaa");
+            }
+
+            if(!u) {
+                log("No session found. Showing Login Card.");
+                document.getElementById('auth-card').classList.remove('hidden');
+            } else {
+                log(`Session found for: ${u}`);
+                document.getElementById('main-ui').classList.remove('hidden');
+            }
         }
 
         async function login() {
-            const e = document.getElementById('l-email').value.toLowerCase().trim(), p = document.getElementById('l-pass').value.trim();
-            if(!e || !p) return toast("Enter Login Info");
-            toast("Checking...");
-            const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
-            const status = await res.text();
-            if(status.trim() === "valid") { sessionStorage.setItem('u_email', e); location.reload(); }
-            else toast("Access Denied");
-        }
+            const e = document.getElementById('l-email').value.toLowerCase().trim();
+            const p = document.getElementById('l-pass').value.trim();
+            log(`Attempting login for ${e}...`);
 
-        async function loadPending() {
-            const res = await fetch(`${API}?action=getPending&email=${ADMIN}`);
-            const data = await res.json();
-            document.getElementById('pending-list').innerHTML = data.map(u => `
-                <div class="student-item">
-                    <div><b>${u[1]}</b><br>${u[0]}</div>
-                    <button onclick="approveUser('${u[0]}')" class="btn-gold" style="width:70px; height:35px; font-size:10px;">GRANT</button>
-                </div>`).join('') || "<p style='font-size:11px; opacity:0.5;'>No Requests.</p>";
-        }
-
-        async function approveUser(email) {
-            toast("Approving...");
-            await fetch(API, {method:"POST", body:JSON.stringify({ action:"approveUser", adminEmail:ADMIN, targetEmail:email }) });
-            loadPending();
-        }
-
-        async function fetchData() {
             try {
-                const [r, a] = await Promise.all([fetch(`${API}?action=getRoster`), fetch(`${API}?action=getReport`)]);
-                cachedRoster = await r.json(); 
-                attendanceLogs = await a.json(); 
-                renderRoster();
-            } catch(e) { toast("Data Sync Failed"); }
-        }
-
-        function renderRoster() {
-            const c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value, d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value;
-            const filtered = cachedRoster.filter(x => x[2] == c && x[3] == s).sort((a,b) => a[1] - b[1]);
-            document.getElementById('att-list').innerHTML = filtered.map(st => {
-                const log = attendanceLogs.find(l => l[0].includes(d) && l[1] == p && l[2] == st[1]);
-                return `<div class="student-item">
-                    <b>${st[1]}. ${st[0]}</b> ${log ? `<span style="color:var(--gold); font-weight:900;">(${log[6]})</span>`:''}
-                    <div style="display:flex; gap:8px;">
-                        <button style="background:var(--gold); width:40px; height:40px; border-radius:10px; color:black;" onclick="mark('${st[0]}','${st[1]}','P')">P</button>
-                        <button style="background:var(--red); width:40px; height:40px; border-radius:10px;" onclick="mark('${st[0]}','${st[1]}','A')">A</button>
-                    </div>
-                </div>`;
-            }).join('') || "<p style='opacity:0.5;'>No Students in this Section.</p>";
-        }
-
-        function mark(n, r, s) {
-            const d = document.getElementById('att-date').value, p = document.getElementById('period-sel').value, c = document.getElementById('sel-class').value, sec = document.getElementById('sel-sec').value;
-            toast(`${n}: ${s}`);
-            attendanceLogs.push([d, p, r, n, c, sec, s]); renderRoster();
-            fetch(API, {method:"POST", mode:"no-cors", body:JSON.stringify({action:"markAttendance", date:d, name:n, roll:r, status:s, class:c, section:sec, period:p, userEmail:sessionStorage.getItem('u_email')})});
-        }
-
-        async function addStudent() {
-            const n = document.getElementById('st-name').value, r = document.getElementById('st-roll').value, c = document.getElementById('add-class').value, s = document.getElementById('add-sec').value;
-            if(!n || !r) return toast("Enter Name & Roll");
-            cachedRoster.push([n, r, c, s]); renderRoster();
-            await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", name:n, roll:r, class:c, section:s})});
-            document.getElementById('st-name').value = ""; document.getElementById('st-roll').value = ""; toast("Saved!");
-        }
-
-        async function downloadReport() {
-            toast("Preparing File...");
-            const d = document.getElementById('att-date').value, c = document.getElementById('sel-class').value, s = document.getElementById('sel-sec').value;
-            const res = await fetch(`${API}?action=getReport`);
-            const data = await res.json();
-            const filtered = data.filter(r => r[0].includes(d) && r[4] == c && r[5] == s);
-            if(filtered.length === 0) return toast("No data to download!");
-            let csv = `Attendance: ${c} ${s} (${d})\nRoll,Name,P1,P2,P3,P4,P5,P6,P7,P8\n`;
-            const rolls = [...new Set(filtered.map(r => r[2]))].sort((a,b)=>a-b);
-            rolls.forEach(roll => {
-                const info = filtered.find(r => r[2] == roll);
-                let row = `${roll},${info[3]}`;
-                for(let p=1; p<=8; p++) {
-                    const f = filtered.find(r => r[2] == roll && r[1] == p);
-                    row += `,${f ? f[6] : '-'}`;
+                const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
+                const status = await res.text();
+                log(`Server Response: ${status}`);
+                if(status.trim() === "valid") {
+                    sessionStorage.setItem('u_email', e);
+                    location.reload();
+                } else {
+                    log("Login Rejected by Server", "red");
                 }
-                csv += row + "\n";
-            });
-            const a = document.createElement('a'); a.href = window.URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-            a.download = `Attendance_${c}_${s}_${d}.csv`; a.click();
-        }
-
-        async function sendOTP() {
-            const e = document.getElementById('r-email').value;
-            if(!e) return toast("Enter Email");
-            toast("Sending OTP...");
-            const res = await fetch(API, {method:"POST", body:JSON.stringify({action:"sendOTP", email:e})});
-            liveOTP = await res.text();
-            document.getElementById('otp-area').classList.remove('hidden'); document.getElementById('otp-btn').classList.add('hidden'); toast("OTP Sent!");
-        }
-
-        async function verifyAndReq() {
-            if(document.getElementById('r-otp').value !== liveOTP) return toast("Wrong OTP");
-            await fetch(API, {method:"POST", body:JSON.stringify({action:"requestAccount", email:document.getElementById('r-email').value, name:document.getElementById('r-name').value, pass:document.getElementById('r-pass').value, pin:document.getElementById('r-pin').value})});
-            toast("Request Sent!"); location.reload();
-        }
-
-        async function recover() {
-            const e = document.getElementById('f-email').value, p = document.getElementById('f-pin').value;
-            const res = await fetch(`${API}?action=forgot&email=${e}&pin=${p}`);
-            alert(await res.text());
+            } catch(err) {
+                log("Fetch Error during login: " + err.message, "red");
+            }
         }
 
         function logout() { sessionStorage.clear(); location.reload(); }
